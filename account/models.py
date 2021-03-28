@@ -34,6 +34,7 @@ class MyAccountManager(BaseUserManager):
         user.is_superuser = True
         user.first_name = 'admin'
         user.last_name = 'admin'
+        user.role = 'superuser'
         user.save(using=self._db)
         return user
 
@@ -46,6 +47,7 @@ class Account(AbstractBaseUser):
     email = models.EmailField(verbose_name="email", max_length=60, unique=True)
     phone_number = models.CharField(max_length=11, unique=True)
     password = models.CharField(max_length=20, blank=True)
+    role = models.CharField(default='normal-user', max_length=20, verbose_name='role')
 
     # optional fields
     national_code = models.IntegerField(unique=True, blank=True)
