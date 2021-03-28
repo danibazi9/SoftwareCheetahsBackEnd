@@ -29,20 +29,8 @@ def registration_view(request):
                 filename = request.data['filename']
                 file = ContentFile(base64.b64decode(request.data['image']), name=filename)
                 account.image = file
-                account.save()
 
-            if 'gender' in request.data:
-                gender = request.data['gender']
-                if gender == 'Male' or gender == 'Female':
-                    account.gender = gender
-                    account.save()
-                else:
-                    return Response("Gender: Not Acceptable!", status=status.HTTP_406_NOT_ACCEPTABLE)
-
-            if 'bio' in request.data:
-                bio = request.data['bio']
-                account.bio = bio
-                account.save()
+            account.save()
 
             data['response'] = 'successful'
             token = Token.objects.get(user=account).key
@@ -135,6 +123,13 @@ def update_account_view(request):
 
     if 'bio' in request.data:
         account.bio = data['bio']
+
+    if 'national_code' in request.data:
+        national_code = data['national_code']
+        if len(national_code) > 10:
+            return Response("National Code: Not Acceptable!", status=status.HTTP_406_NOT_ACCEPTABLE)
+        else:
+            account.national_code = national_code
 
     account.save()
 

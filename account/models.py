@@ -41,12 +41,12 @@ class Account(AbstractBaseUser):
     first_name = models.CharField(max_length=20)
     last_name = models.CharField(max_length=40)
     email = models.EmailField(verbose_name="email", max_length=60, unique=True)
-    phone_number = models.CharField(max_length=11, unique=True)
+    phone_number = models.CharField(max_length=13, unique=True)
     password = models.CharField(max_length=20, blank=True)
     role = models.CharField(default='normal-user', max_length=20, verbose_name='role')
 
     # optional fields
-    national_code = models.IntegerField(unique=True, null=True)
+    national_code = models.CharField(max_length=10, unique=True, null=True, blank=True)
 
     GENDER_CHOICES = [
         ('Male', 'Male'),
@@ -54,7 +54,7 @@ class Account(AbstractBaseUser):
     ]
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True)
 
-    birthday = models.DateField(null=True)
+    birthday = models.DateField(null=True, blank=True)
     image = models.ImageField(upload_to='users/images/', blank=True)
     bio = models.TextField(blank=True)
 
