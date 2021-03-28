@@ -7,3 +7,7 @@ This git repository created for the back-end of **"MyUniversity"** project.
 Project contributors: 
 
 * Danial Bazmandeh, BSc, Computer Engineering
+
+Feasibility study:
+
+* [Download](https://github.com/danibazi9/SoftwareCheetahsBackEnd/blob/master/Feasibility%20Study_Software%20Cheetahs.pdf)
