@@ -142,3 +142,30 @@ def update_account_view(request):
     data = json.loads(json.dumps(my_serializer.data))
 
     return Response(data, status=status.HTTP_205_RESET_CONTENT)
+
+
+@permission_classes((IsAuthenticated,))
+class SendEmail(APIView):
+    def get(self, request):
+        user_to_send_email = self.request.user
+
+        random_code_generated = random.randrange(100000, 999999)
+
+        template = render_to_string('account/email_template.html',
+                                    {'name': user_to_send_email.first_name,
+                                     'code': random_code_generated})
+
+        email = EmailMessage(
+            'Welcome to MyUniversity Platform!',
+            template,
+            'MyUniversity Organization',
+            [user_to_send_email.email]
+        )
+
+        email.content_subtype = "html"
+        email.fail_silently = False
+        email.send()
+
+        serializer = AccountPropertiesSerializer(user_to_send_email)
+        json_response = {"email": serializer.data['email'], "vc_code": random_code_generated}
+        return Response(json_response)
