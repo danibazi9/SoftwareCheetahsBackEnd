@@ -8,26 +8,22 @@ from rest_framework.authtoken.models import Token
 
 
 class MyAccountManager(BaseUserManager):
-    def create_user(self, email, username, password=None):
+    def create_user(self, email, password=None):
         if not email:
             raise ValueError('Users must have an email address')
-        if not username:
-            raise ValueError('Users must have a username')
 
         user = self.model(
             email=self.normalize_email(email),
-            username=username,
         )
 
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, username, password):
+    def create_superuser(self, email, password):
         user = self.create_user(
             email=self.normalize_email(email),
             password=password,
-            username=username,
         )
         user.is_admin = True
         user.is_staff = True
@@ -50,12 +46,15 @@ class Account(AbstractBaseUser):
     role = models.CharField(default='normal-user', max_length=20, verbose_name='role')
 
     # optional fields
-    national_code = models.IntegerField(unique=True, blank=True)
+    national_code = models.IntegerField(unique=True, null=True)
 
-    GENDER_CHOICES = ('Male', 'Female')
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
+    GENDER_CHOICES = [
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+    ]
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True)
 
-    birthday = models.DateField(blank=True)
+    birthday = models.DateField(null=True)
     image = models.ImageField(upload_to='users/images/', blank=True)
     bio = models.TextField(blank=True)
 
@@ -68,7 +67,7 @@ class Account(AbstractBaseUser):
     is_superuser = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    REQUIRED_FIELDS = []
 
     objects = MyAccountManager()
 

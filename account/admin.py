@@ -13,6 +13,7 @@ class AccountAdmin(UserAdmin):
 	list_filter = ('role',)
 	exclude = ('password',)
 	readonly_fields = ('date_joined', 'last_login')
+	ordering = ('email',)
 
 	filter_horizontal = ()
 	fieldsets = ()
