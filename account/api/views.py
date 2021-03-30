@@ -16,6 +16,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 import random
 from rest_framework import status
+from django.http import JsonResponse
 
 
 @api_view(['POST'])
@@ -186,6 +187,6 @@ def checkUniqueness(request):
                 errors['phone'] = 'This phone already exist'
                 errors_count += 1
         if errors_count > 0:
-            return Response({'errors' : errors}, status=status.HTTP_404_NOT_FOUND)    
+            return JsonResponse({'errors' : errors}, status=status.HTTP_404_NOT_FOUND)    
         else :
-            return Response(status=status.HTTP_200_OK) 
+            return JsonResponse(status=status.HTTP_200_OK) 
