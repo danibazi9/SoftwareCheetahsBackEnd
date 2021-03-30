@@ -186,27 +186,15 @@ def send_email(request):
         return Response({"vc_code": random_code_generated}, status=status.HTTP_200_OK)
     else:
         return Response(f"The email '{email}' doesn't exist", status=status.HTTP_406_NOT_ACCEPTABLE)
-                            
 
-@api_view(['POST' , ])
-def checkUniqueness(request):
-    if request.method == 'POST':
-        data = dict(request.POST)
-        errors = {}
-        errors_count = 0
-        if 'username' in data.keys():
-            if list(Account.objects.filter(username=data['username'][0])) != []:
-                errors['username'] = 'This username already exist'
-                errors_count += 1
-        if 'email' in data.keys():
-            if list(Account.objects.filter(email=data['email'][0])) != []:
-                errors['email'] = 'This email already exist'
-                errors_count += 1
-        if 'phone' in data.keys():
-            if list(Account.objects.filter(phone=data['phone'][0])) != []:
-                errors['phone'] = 'This phone already exist'
-                errors_count += 1
-        if errors_count > 0:
-            return JsonResponse({'errors' : errors}, status=status.HTTP_404_NOT_FOUND)    
-        else :
-            return JsonResponse({},status=status.HTTP_200_OK) 
+
+@api_view(['POST'])
+def check_email_existence(request):
+    if 'email' in request.data:
+        try:
+            Account.objects.get(email=request.data['email'])
+            return Response(f"User with email '{request.data['email']}' already exists!", status=status.HTTP_200_OK)
+        except Account.DoesNotExist:
+            return Response(f"User with email '{request.data['email']}' NOT FOUND!", status=status.HTTP_404_NOT_FOUND)
+    else:
+        return Response('Email: None, BAD REQUEST', status=status.HTTP_400_BAD_REQUEST)
