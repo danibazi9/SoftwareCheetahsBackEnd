@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from account.api.serializer import *
 from validate_email import validate_email
-from account.models import Account
+from account.models import Account, VerificationCode
 from rest_framework.views import APIView
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
@@ -22,30 +22,37 @@ def registration_view(request):
     serializer = RegistrationSerializer(data=request.data)
     data = {}
     if serializer.is_valid():
-        if validate_email(serializer.validated_data.get('email')):
-            account = serializer.save()
+        try:
+            vc_code_object = VerificationCode.objects.get(email=serializer.validated_data['email'])
+        except VerificationCode.DoesNotExist:
+            return Response(f"User with email '{serializer.validated_data['email']} hasn't verified yet!")
 
-            if 'filename' in request.data and 'image' in request.data:
-                filename = request.data['filename']
-                file = ContentFile(base64.b64decode(request.data['image']), name=filename)
-                account.image = file
-
-            account.save()
-
-            data['response'] = 'successful'
-            token = Token.objects.get(user=account).key
-            data['token'] = token
-
-            serializer = AccountPropertiesSerializer(account)
-            info = json.loads(json.dumps(serializer.data))
-
-            for key in info:
-                data[key] = info[key]
-
-            return Response(data=data, status=status.HTTP_201_CREATED)
+        if 'vc_code' in request.data:
+            if vc_code_object.vc_code == request.data['vc_code']:
+                account = serializer.save()
+            else:
+                return Response(f"ERROR: Incorrect verification code", status=status.HTTP_406_NOT_ACCEPTABLE)
         else:
-            return Response(f"The email '{serializer['email'].value}' doesn't exist",
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response('Vc_code: None, BAD REQUEST!', status=status.HTTP_400_BAD_REQUEST)
+
+        if 'filename' in request.data and 'image' in request.data:
+            filename = request.data['filename']
+            file = ContentFile(base64.b64decode(request.data['image']), name=filename)
+            account.image = file
+
+        account.save()
+
+        data['response'] = 'successful'
+        token = Token.objects.get(user=account).key
+        data['token'] = token
+
+        serializer = AccountPropertiesSerializer(account)
+        info = json.loads(json.dumps(serializer.data))
+
+        for key in info:
+            data[key] = info[key]
+
+        return Response(data=data, status=status.HTTP_201_CREATED)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -139,28 +146,41 @@ def update_account_view(request):
     return Response(data, status=status.HTTP_205_RESET_CONTENT)
 
 
-@permission_classes((IsAuthenticated,))
-class SendEmail(APIView):
-    def get(self, request):
-        user_to_send_email = self.request.user
+@api_view(['POST'])
+def send_email(request):
+    if 'email' not in request.data:
+        return Response("email: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+    if 'first_name' not in request.data:
+        return Response("first_name: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
 
+    email = request.data['email']
+    first_name = request.data['first_name']
+
+    if validate_email(email):
         random_code_generated = random.randrange(100000, 999999)
 
         template = render_to_string('account/email_template.html',
-                                    {'name': user_to_send_email.first_name,
+                                    {'name': first_name,
                                      'code': random_code_generated})
 
-        email = EmailMessage(
+        email_to_send = EmailMessage(
             'Welcome to MyUniversity Platform!',
             template,
             'MyUniversity Organization',
-            [user_to_send_email.email]
+            [email]
         )
 
-        email.content_subtype = "html"
-        email.fail_silently = False
-        email.send()
+        email_to_send.content_subtype = "html"
+        email_to_send.fail_silently = False
+        email_to_send.send()
 
-        serializer = AccountPropertiesSerializer(user_to_send_email)
-        json_response = {"email": serializer.data['email'], "vc_code": random_code_generated}
-        return Response(json_response)
+        try:
+            vc_code_object = VerificationCode.objects.get(email=email)
+            vc_code_object.vc_code = str(random_code_generated)
+            vc_code_object.save()
+        except VerificationCode.DoesNotExist:
+            vc_code_object = VerificationCode.objects.create(email=email, vc_code=str(random_code_generated))
+
+        return Response({"vc_code": random_code_generated}, status=status.HTTP_200_OK)
+    else:
+        return Response(f"The email '{email}' doesn't exist", status=status.HTTP_406_NOT_ACCEPTABLE)
