@@ -191,8 +191,8 @@ def check_email_existance(request):
     if 'email' in request.data:
         try:
             Account.objects.get(email=request.data['email'])
-            return Response(f"User with email {request.data['email']} exists!", status=status.HTTP_200_OK)
+            return Response(f"User with email '{request.data['email']}' already exists!", status=status.HTTP_200_OK)
         except Account.DoesNotExist:
-            return Response(f"User with email {request.data['email']} NOT FOUND!", status=status.HTTP_404_NOT_FOUND)
+            return Response(f"User with email '{request.data['email']}' NOT FOUND!", status=status.HTTP_404_NOT_FOUND)
     else:
         return Response('Email: None, BAD REQUEST', status=status.HTTP_400_BAD_REQUEST)
