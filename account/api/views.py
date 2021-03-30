@@ -164,3 +164,20 @@ class SendEmail(APIView):
         serializer = AccountPropertiesSerializer(user_to_send_email)
         json_response = {"email": serializer.data['email'], "vc_code": random_code_generated}
         return Response(json_response)
+
+
+@api_view(['POST' , ])
+def checkUniqueness(request):
+    if request.method == 'POST':
+        data = dict(request.POST)
+        errors = {}
+        if 'username' in data.keys():
+            if list(Account.objects.filter(username=data['username'][0])) != []:
+                errors['username'] = 'This username already exist'
+        if 'email' in data.keys():
+            if list(Account.objects.filter(email=data['email'][0])) != []:
+                errors['email'] = 'This email already exist'
+        if 'phone' in data.keys():
+            if list(Account.objects.filter(phone=data['phone'][0])) != []:
+                errors['phone'] = 'This phone already exist'
+        return Response({'errors' : errors})     
