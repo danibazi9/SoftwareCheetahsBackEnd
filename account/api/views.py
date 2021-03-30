@@ -184,3 +184,15 @@ def send_email(request):
         return Response({"vc_code": random_code_generated}, status=status.HTTP_200_OK)
     else:
         return Response(f"The email '{email}' doesn't exist", status=status.HTTP_406_NOT_ACCEPTABLE)
+
+
+@api_view(['POST'])
+def check_email_existance(request):
+    if 'email' in request.data:
+        try:
+            Account.objects.get(email=request.data['email'])
+            return Response(f"User with email {request.data['email']} exists!", status=status.HTTP_200_OK)
+        except Account.DoesNotExist:
+            return Response(f"User with email {request.data['email']} NOT FOUND!", status=status.HTTP_404_NOT_FOUND)
+    else:
+        return Response('Email: None, BAD REQUEST', status=status.HTTP_400_BAD_REQUEST)

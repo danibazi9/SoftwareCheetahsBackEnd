@@ -12,4 +12,5 @@ urlpatterns = [
     path('properties', account_properties_view, name="properties"),
     path('send-email', send_email, name='send_email'),
     path('properties/all', all_accounts_view, name="properties_all"),
+    path('check-existance', check_email_existance, name="check-existence"),
 ]
