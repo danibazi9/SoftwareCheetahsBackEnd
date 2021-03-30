@@ -187,7 +187,7 @@ def send_email(request):
 
 
 @api_view(['POST'])
-def check_email_existance(request):
+def check_email_existence(request):
     if 'email' in request.data:
         try:
             Account.objects.get(email=request.data['email'])
