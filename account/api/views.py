@@ -15,6 +15,7 @@ from django.template.loader import render_to_string
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 import random
+from rest_framework import status
 
 
 @api_view(['POST'])
@@ -171,13 +172,20 @@ def checkUniqueness(request):
     if request.method == 'POST':
         data = dict(request.POST)
         errors = {}
+        errors_count = 0
         if 'username' in data.keys():
             if list(Account.objects.filter(username=data['username'][0])) != []:
                 errors['username'] = 'This username already exist'
+                errors_count += 1
         if 'email' in data.keys():
             if list(Account.objects.filter(email=data['email'][0])) != []:
                 errors['email'] = 'This email already exist'
+                errors_count += 1
         if 'phone' in data.keys():
             if list(Account.objects.filter(phone=data['phone'][0])) != []:
                 errors['phone'] = 'This phone already exist'
-        return Response({'errors' : errors})     
+                errors_count += 1
+        if errors_count > 0:
+            return Response({'errors' : errors}, status=status.HTTP_404_NOT_FOUND)    
+        else :
+            return Response(status=status.HTTP_200_OK) 
