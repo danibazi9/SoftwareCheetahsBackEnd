@@ -10,7 +10,7 @@ urlpatterns = [
     path('login', TokenObtainView.as_view(), name='login'),
     path('logout', logoutView.as_view(), name='logout'),
     path('properties', account_properties_view, name="properties"),
-    path('send-email', SendEmail.as_view()),
+    path('send-email', send_email, name='send_email'),
     path('properties/all', all_accounts_view, name="properties_all"),
     path('checkUniqueness/', checkUniqueness, name="checkUniqueness"),
 ]
