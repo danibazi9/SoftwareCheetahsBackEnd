@@ -189,4 +189,4 @@ def checkUniqueness(request):
         if errors_count > 0:
             return JsonResponse({'errors' : errors}, status=status.HTTP_404_NOT_FOUND)    
         else :
-            return JsonResponse(status=status.HTTP_200_OK) 
+            return JsonResponse({},status=status.HTTP_200_OK) 
