@@ -15,6 +15,8 @@ from django.template.loader import render_to_string
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 import random
+from rest_framework import status
+from django.http import JsonResponse
 
 
 @api_view(['POST'])
