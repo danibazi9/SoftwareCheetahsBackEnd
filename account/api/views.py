@@ -121,6 +121,7 @@ def update_account_view(request):
     account.first_name = data['first_name']
     account.last_name = data['last_name']
     account.email = data['email']
+    account.birthday = data['birthday']
     account.image = file
     account.phone_number = data['phone_number']
 
