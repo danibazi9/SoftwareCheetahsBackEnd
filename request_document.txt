@@ -1,0 +1,27 @@
+show properities of user : 
+	url = http://127.0.0.1:8000/api/account/properties
+	type : get 
+	headers variables :
+		Authorization : "Token str"
+		
+	result : 
+		success :
+		{
+		    "user_id": 1,
+		    "first_name": "admin",
+		    "last_name": "admin",
+		    "email": "admin@admin.com",
+		    "phone_number": "",
+		    "gender": "",
+		    "national_code": null,
+		    "image": null,
+		    "role": "superuser",
+		    "bio": ""
+		}
+		fail :
+		{
+		    "detail": "Invalid token."
+		}
+		
+edit properities of user :
+	url
