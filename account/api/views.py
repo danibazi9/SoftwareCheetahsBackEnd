@@ -48,7 +48,7 @@ def registration_view(request):
                             status=status.HTTP_406_NOT_ACCEPTABLE)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+ 
 
 @api_view(['GET', ])
 def account_properties_view(request):
