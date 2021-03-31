@@ -165,9 +165,9 @@ def send_email(request):
                                      'code': random_code_generated})
 
         email_to_send = EmailMessage(
-            'Welcome to MyUniversity Platform!',
+            'Welcome to SweetHome Platform!',
             template,
-            'MyUniversity Organization',
+            'SweetHome Organization',
             [email]
         )
 
