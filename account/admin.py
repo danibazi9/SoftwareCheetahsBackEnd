@@ -8,6 +8,11 @@ from persiantools.jdatetime import JalaliDateTime
 
 
 class AccountAdmin(UserAdmin):
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('first_name', 'last_name', 'email', 'username', 'phone_number', 'password1', 'password2', 'role',
+                       'national_code', 'gender', 'birthday', 'image', 'bio',)}),)
     list_display = ('user_id', 'first_name', 'last_name', 'email', 'get_date_joined', 'role', 'is_admin')
     search_fields = ('first_name', 'last_name', 'email')
     list_filter = ('role',)
