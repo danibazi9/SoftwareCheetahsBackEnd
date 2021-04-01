@@ -74,11 +74,11 @@ def account_properties_view(request):
 @api_view(('GET',))
 def all_accounts_view(request):
     query = Q()
-    
-    query = query | Q(email__contains=request.GET["search"][0])
-    query = query | Q(first_name__contains=request.GET["search"][0])
-    query = query | Q(role__contains=request.GET["search"][0])   
-    
+    if "search" in request.GET:
+        query = query | Q(email__contains=request.GET["search"][0])
+        query = query | Q(first_name__contains=request.GET["search"][0])
+        query = query | Q(role__contains=request.GET["search"][0])   
+
     all_accounts = Account.objects.filter(query)
 
 
