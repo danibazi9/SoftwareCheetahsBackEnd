@@ -32,9 +32,7 @@ send all users :
 	url : http://127.0.0.1:8000/api/account/properties/all
 	type : get
 	params variables :
-		email : str
-		first_name : str
-		last_name : str
+		search : str
 	
 	result : 
 		[
