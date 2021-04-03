@@ -155,3 +155,31 @@ class LogoutTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+class EmailTest(TestCase):
+    """ Test module for send email to a created account to verify """
+
+    def setUp(self):
+        self.valid_send_email = {
+            'first_name': 'Ali',
+            'email': 'ali_heydari@gmail.com'
+        }
+
+        self.invalid_send_email = {
+            'first_name': 'Danial',
+        }
+
+    def test_valid_logout(self):
+        response = client.post(
+            reverse('account:send_email'),
+            data=json.dumps(self.valid_send_email),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_invalid_logout(self):
+        response = client.post(
+            reverse('account:send_email'),
+            data=json.dumps(self.invalid_send_email),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
