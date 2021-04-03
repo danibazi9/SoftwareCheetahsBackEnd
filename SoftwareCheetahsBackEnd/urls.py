@@ -24,5 +24,6 @@ urlpatterns = [
     path('api/account/', include('account.api.urls', 'account_api')),
 ]
 
+# might make an error when we False debug in deploying
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
