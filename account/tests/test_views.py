@@ -85,3 +85,38 @@ class SignUpTest(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+
+class LoginTest(TestCase):
+    """ Test module for login a created account """
+
+    def setUp(self):
+        Account.objects.create_user(
+            email='danibazi9@gmail.com',
+            password='123456'
+        )
+
+        self.valid_login = {
+            'username': 'danibazi9@gmail.com',
+            'password': '123456'
+        }
+
+        self.invalid_login = {
+            'username': 'danibazi9@gmail.com',
+            'password': '1234'
+        }
+
+    def test_valid_login(self):
+        response = client.post(
+            reverse('account:login'),
+            data=json.dumps(self.valid_login),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_invalid_login(self):
+        response = client.post(
+            reverse('account:login'),
+            data=json.dumps(self.invalid_login),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
