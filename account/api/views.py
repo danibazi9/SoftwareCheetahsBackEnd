@@ -57,7 +57,7 @@ def registration_view(request):
         return Response(data=data, status=status.HTTP_201_CREATED)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
- 
+
 
 @api_view(['GET', ])
 def account_properties_view(request):
@@ -76,9 +76,9 @@ def account_properties_view(request):
 def all_accounts_view(request):
     query = Q()
     if "search" in request.GET:
-        query = query | Q(email__contains=request.GET["search"][0])
-        query = query | Q(first_name__contains=request.GET["search"][0])
-        query = query | Q(role__contains=request.GET["search"][0])   
+        query = query | Q(email__contains=request.GET["search"])
+        query = query | Q(first_name__contains=request.GET["search"])
+        query = query | Q(role__contains=request.GET["search"])   
 
     all_accounts = Account.objects.filter(query)
 
