@@ -122,3 +122,36 @@ class LoginTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+class LogoutTest(TestCase):
+    """ Test module for logout from a created account """
+
+    def setUp(self):
+        account = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=account)
+        self.invalid_token = '7900b33a300eff557ebbe2d5261d00e2eaaac880'
+
+    def test_valid_logout(self):
+        response = client.post(
+            reverse('account:logout'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token.key),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_invalid_logout(self):
+        response = client.post(
+            reverse('account:logout'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
