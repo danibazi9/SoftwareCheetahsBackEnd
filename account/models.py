@@ -64,11 +64,11 @@ class Account(AbstractBaseUser):
         ('Male', 'Male'),
         ('Female', 'Female'),
     ]
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
 
     birthday = models.DateField(null=True, blank=True)
-    image = models.ImageField(upload_to='users/images/', blank=True)
-    bio = models.TextField(blank=True)
+    image = models.ImageField(upload_to='users/images/', blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
 
     # auto-generate fields
     username = models.CharField(verbose_name='username', max_length=30, unique=True)

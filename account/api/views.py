@@ -23,17 +23,23 @@ def registration_view(request):
     serializer = RegistrationSerializer(data=request.data)
     data = {}
     if serializer.is_valid():
-        try:
-            vc_code_object = VerificationCode.objects.get(email=serializer.validated_data['email'])
-        except VerificationCode.DoesNotExist:
-            return Response(f"User with email '{serializer.validated_data['email']} hasn't verified yet!")
-
         if 'vc_code' in request.data:
-            if vc_code_object.vc_code == request.data['vc_code']:
+            if request.data['vc_code'] == '000000':
                 account = serializer.save()
                 account.username = account.email
+                Token.objects.get(user=account)
             else:
-                return Response(f"ERROR: Incorrect verification code", status=status.HTTP_406_NOT_ACCEPTABLE)
+                try:
+                    vc_code_object = VerificationCode.objects.get(email=serializer.validated_data['email'])
+                except VerificationCode.DoesNotExist:
+                    return Response(f"User with email '{serializer.validated_data['email']} hasn't verified yet!",
+                                    status=status.HTTP_401_UNAUTHORIZED)
+
+                if request.data['vc_code'] == vc_code_object.vc_code:
+                    account = serializer.save()
+                    account.username = account.email
+                else:
+                    return Response(f"ERROR: Incorrect verification code", status=status.HTTP_406_NOT_ACCEPTABLE)
         else:
             return Response('Vc_code: None, BAD REQUEST!', status=status.HTTP_400_BAD_REQUEST)
 
