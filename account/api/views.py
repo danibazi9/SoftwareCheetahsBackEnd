@@ -15,6 +15,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 import random
 from rest_framework import status
+from django.db.models import Q
 
 
 @api_view(['POST'])
@@ -66,6 +67,7 @@ def registration_view(request):
 
 @api_view(['GET', ])
 def account_properties_view(request):
+    account = request.user
     try:
         account = request.user
     except Account.DoesNotExist:
@@ -78,7 +80,14 @@ def account_properties_view(request):
 
 @api_view(('GET',))
 def all_accounts_view(request):
-    all_accounts = Account.objects.all()
+    query = Q()
+    if "search" in request.GET:
+        query = query | Q(email__contains=request.GET["search"][0])
+        query = query | Q(first_name__contains=request.GET["search"][0])
+        query = query | Q(role__contains=request.GET["search"][0])   
+
+    all_accounts = Account.objects.filter(query)
+
 
     if request.method == 'GET':
         serializer = AccountPropertiesSerializer(all_accounts, many=True)
@@ -115,18 +124,26 @@ class LogoutView(APIView):
 @permission_classes((IsAuthenticated,))
 def update_account_view(request):
     account = request.user
-
     data = request.data
 
     file = ""
     if 'filename' in data and 'image' in data:
         filename = data['filename']
         file = ContentFile(base64.b64decode(data['image']), name=filename)
+        account.image = file
 
     account.first_name = data['first_name']
     account.last_name = data['last_name']
-    account.image = file
-    account.phone_number = data['phone_number']
+    account.email = data['email']
+    
+    if 'birthday' in data:
+        account.birthday = data['birthday']
+        
+    if 'phone_number' in data:
+        account.phone_number = data['phone_number']
+
+    if 'gender' in data:
+        gender = data['gender']
 
     if 'gender' in data:
         gender = data['gender']
