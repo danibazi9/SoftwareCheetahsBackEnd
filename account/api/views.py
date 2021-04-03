@@ -61,6 +61,7 @@ def registration_view(request):
 
 @api_view(['GET', ])
 def account_properties_view(request):
+    account = request.user
     try:
         account = request.user
     except Account.DoesNotExist:
