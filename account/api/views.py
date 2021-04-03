@@ -61,31 +61,26 @@ def registration_view(request):
 
 @api_view(['GET', ])
 def account_properties_view(request):
-    account = request.user
     try:
         account = request.user
     except Account.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    if request.method == 'GET':
-        serializer = AccountPropertiesSerializer(account)
-        return Response(serializer.data)
+    serializer = AccountPropertiesSerializer(account)
+    return Response(serializer.data)
 
 
 @api_view(('GET',))
 def all_accounts_view(request):
     query = Q()
-    if "search" in request.GET:
-        query = query | Q(email__contains=request.GET["search"])
-        query = query | Q(first_name__contains=request.GET["search"])
-        query = query | Q(role__contains=request.GET["search"])   
+    if "search" in request.data:
+        search = request.data["search"]
+        query = Q(email__contains=search) | Q(first_name__contains=search) | Q(last_name__contains=search)
 
     all_accounts = Account.objects.filter(query)
 
-
-    if request.method == 'GET':
-        serializer = AccountPropertiesSerializer(all_accounts, many=True)
-        return Response(serializer.data)
+    serializer = AccountPropertiesSerializer(all_accounts, many=True)
+    return Response(serializer.data)
 
 
 class TokenObtainView(ObtainAuthToken):
