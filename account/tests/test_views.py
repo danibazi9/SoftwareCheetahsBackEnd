@@ -48,3 +48,40 @@ class CheckExistenceTest(TestCase):
             content_type='application/json'
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class SignUpTest(TestCase):
+    """ Test module for creating a new account """
+
+    def setUp(self):
+        self.valid_account = {
+            'first_name': 'Ali',
+            'last_name': 'Heydari',
+            'email': 'ali_heydari@gmail.com',
+            'phone_number': '+989152001235',
+            'password': '123456',
+            'vc_code': '000000'
+        }
+
+        self.invalid_account = {
+            'first_name': 'Ali',
+            'last_name': 'Heydari',
+            'email': 'ali_heydari@gmail.com',
+        }
+
+    def test_create_valid_account(self):
+        response = client.post(
+            reverse('account:register'),
+            data=json.dumps(self.valid_account),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_invalid_account(self):
+        response = client.post(
+            reverse('account:register'),
+            data=json.dumps(self.invalid_account),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
