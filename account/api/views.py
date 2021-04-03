@@ -139,9 +139,6 @@ def update_account_view(request):
 
     if 'gender' in data:
         gender = data['gender']
-
-    if 'gender' in data:
-        gender = data['gender']
         if gender == 'Male' or gender == 'Female':
             account.gender = gender
         else:
