@@ -2,19 +2,20 @@ import base64
 import json
 
 from django.core.files.base import ContentFile
-from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from account.api.serializer import *
 from validate_email import validate_email
-from account.models import Account
+from account.models import Account, VerificationCode
 from rest_framework.views import APIView
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 import random
+from rest_framework import status
+from django.db.models import Q
 
 
 @api_view(['POST'])
@@ -22,36 +23,45 @@ def registration_view(request):
     serializer = RegistrationSerializer(data=request.data)
     data = {}
     if serializer.is_valid():
-        if validate_email(serializer.validated_data.get('email')):
-            account = serializer.save()
+        try:
+            vc_code_object = VerificationCode.objects.get(email=serializer.validated_data['email'])
+        except VerificationCode.DoesNotExist:
+            return Response(f"User with email '{serializer.validated_data['email']} hasn't verified yet!")
 
-            if 'filename' in request.data and 'image' in request.data:
-                filename = request.data['filename']
-                file = ContentFile(base64.b64decode(request.data['image']), name=filename)
-                account.image = file
-
-            account.save()
-
-            data['response'] = 'successful'
-            token = Token.objects.get(user=account).key
-            data['token'] = token
-
-            serializer = AccountPropertiesSerializer(account)
-            info = json.loads(json.dumps(serializer.data))
-
-            for key in info:
-                data[key] = info[key]
-
-            return Response(data=data, status=status.HTTP_201_CREATED)
+        if 'vc_code' in request.data:
+            if vc_code_object.vc_code == request.data['vc_code']:
+                account = serializer.save()
+                account.username = account.email
+            else:
+                return Response(f"ERROR: Incorrect verification code", status=status.HTTP_406_NOT_ACCEPTABLE)
         else:
-            return Response(f"The email '{serializer['email'].value}' doesn't exist",
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response('Vc_code: None, BAD REQUEST!', status=status.HTTP_400_BAD_REQUEST)
+
+        if 'filename' in request.data and 'image' in request.data:
+            filename = request.data['filename']
+            file = ContentFile(base64.b64decode(request.data['image']), name=filename)
+            account.image = file
+
+        account.save()
+
+        data['response'] = 'successful'
+        token = Token.objects.get(user=account).key
+        data['token'] = token
+
+        serializer = AccountPropertiesSerializer(account)
+        info = json.loads(json.dumps(serializer.data))
+
+        for key in info:
+            data[key] = info[key]
+
+        return Response(data=data, status=status.HTTP_201_CREATED)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
  
 
 @api_view(['GET', ])
 def account_properties_view(request):
+    account = request.user
     try:
         account = request.user
     except Account.DoesNotExist:
@@ -64,7 +74,14 @@ def account_properties_view(request):
 
 @api_view(('GET',))
 def all_accounts_view(request):
-    all_accounts = Account.objects.all()
+    query = Q()
+    if "search" in request.GET:
+        query = query | Q(email__contains=request.GET["search"][0])
+        query = query | Q(first_name__contains=request.GET["search"][0])
+        query = query | Q(role__contains=request.GET["search"][0])   
+
+    all_accounts = Account.objects.filter(query)
+
 
     if request.method == 'GET':
         serializer = AccountPropertiesSerializer(all_accounts, many=True)
@@ -90,7 +107,7 @@ class TokenObtainView(ObtainAuthToken):
 
 
 @permission_classes((IsAuthenticated,))
-class logoutView(APIView):
+class LogoutView(APIView):
     def post(self, request):
         # simply delete the token to force a login
         request.user.auth_token.delete()
@@ -101,18 +118,26 @@ class logoutView(APIView):
 @permission_classes((IsAuthenticated,))
 def update_account_view(request):
     account = request.user
-
     data = request.data
 
     file = ""
     if 'filename' in data and 'image' in data:
         filename = data['filename']
         file = ContentFile(base64.b64decode(data['image']), name=filename)
+        account.image = file
 
     account.first_name = data['first_name']
     account.last_name = data['last_name']
-    account.image = file
-    account.phone_number = data['phone_number']
+    account.email = data['email']
+    
+    if 'birthday' in data:
+        account.birthday = data['birthday']
+        
+    if 'phone_number' in data:
+        account.phone_number = data['phone_number']
+
+    if 'gender' in data:
+        gender = data['gender']
 
     if 'gender' in data:
         gender = data['gender']
@@ -139,28 +164,53 @@ def update_account_view(request):
     return Response(data, status=status.HTTP_205_RESET_CONTENT)
 
 
-@permission_classes((IsAuthenticated,))
-class SendEmail(APIView):
-    def get(self, request):
-        user_to_send_email = self.request.user
+@api_view(['POST'])
+def send_email(request):
+    if 'email' not in request.data:
+        return Response("email: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+    if 'first_name' not in request.data:
+        return Response("first_name: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
 
+    email = request.data['email']
+    first_name = request.data['first_name']
+
+    if validate_email(email):
         random_code_generated = random.randrange(100000, 999999)
 
         template = render_to_string('account/email_template.html',
-                                    {'name': user_to_send_email.first_name,
+                                    {'name': first_name,
                                      'code': random_code_generated})
 
-        email = EmailMessage(
-            'Welcome to MyUniversity Platform!',
+        email_to_send = EmailMessage(
+            'Welcome to SweetHome Platform!',
             template,
-            'MyUniversity Organization',
-            [user_to_send_email.email]
+            'SweetHome Organization',
+            [email]
         )
 
-        email.content_subtype = "html"
-        email.fail_silently = False
-        email.send()
+        email_to_send.content_subtype = "html"
+        email_to_send.fail_silently = False
+        email_to_send.send()
 
-        serializer = AccountPropertiesSerializer(user_to_send_email)
-        json_response = {"email": serializer.data['email'], "vc_code": random_code_generated}
-        return Response(json_response)
+        try:
+            vc_code_object = VerificationCode.objects.get(email=email)
+            vc_code_object.vc_code = str(random_code_generated)
+            vc_code_object.save()
+        except VerificationCode.DoesNotExist:
+            VerificationCode.objects.create(email=email, vc_code=str(random_code_generated))
+
+        return Response({"vc_code": random_code_generated}, status=status.HTTP_200_OK)
+    else:
+        return Response(f"The email '{email}' doesn't exist", status=status.HTTP_406_NOT_ACCEPTABLE)
+
+
+@api_view(['POST'])
+def check_email_existence(request):
+    if 'email' in request.data:
+        try:
+            Account.objects.get(email=request.data['email'])
+            return Response(f"User with email '{request.data['email']}' already exists!", status=status.HTTP_200_OK)
+        except Account.DoesNotExist:
+            return Response(f"User with email '{request.data['email']}' NOT FOUND!", status=status.HTTP_404_NOT_FOUND)
+    else:
+        return Response('Email: None, BAD REQUEST', status=status.HTTP_400_BAD_REQUEST)

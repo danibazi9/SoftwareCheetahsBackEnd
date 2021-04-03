@@ -3,25 +3,46 @@ import datetime
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from account.models import Account
+from account.models import *
 from persiantools.jdatetime import JalaliDateTime
 
 
 class AccountAdmin(UserAdmin):
-	list_display = ('user_id', 'first_name', 'last_name', 'email', 'get_date_joined', 'role', 'is_admin')
-	search_fields = ('first_name', 'last_name', 'email')
-	list_filter = ('role',)
-	exclude = ('password',)
-	readonly_fields = ('date_joined', 'last_login')
-	ordering = ('email',)
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('first_name', 'last_name', 'email', 'username', 'phone_number', 'password1', 'password2', 'role',
+                       'national_code', 'gender', 'birthday', 'image', 'bio',)}),)
+    list_display = ('user_id', 'first_name', 'last_name', 'email', 'get_date_joined', 'role', 'is_admin')
+    search_fields = ('first_name', 'last_name', 'email')
+    list_filter = ('role',)
+    exclude = ('password',)
+    readonly_fields = ('date_joined', 'last_login')
+    ordering = ('email',)
 
-	filter_horizontal = ()
-	fieldsets = ()
+    filter_horizontal = ()
+    fieldsets = ()
 
-	def get_date_joined(self, obj):
-		timestamp = datetime.datetime.timestamp(obj.date_joined)
-		jalali_datetime = JalaliDateTime.fromtimestamp(timestamp)
-		return jalali_datetime.strftime("%Y/%m/%d - %H:%M")
+    def get_date_joined(self, obj):
+        timestamp = datetime.datetime.timestamp(obj.date_joined)
+        jalali_datetime = JalaliDateTime.fromtimestamp(timestamp)
+        return jalali_datetime.strftime("%Y/%m/%d - %H:%M")
 
 
 admin.site.register(Account, AccountAdmin)
+
+
+class VerificationCodeAdmin(admin.ModelAdmin):
+    list_display = ['id', 'email', 'vc_code', 'time_generated']
+    search_fields = ['email']
+
+    class Meta:
+        model = VerificationCode
+
+    def get_time_generated(self, obj):
+        timestamp = datetime.datetime.timestamp(obj.time_generated)
+        jalali_datetime = JalaliDateTime.fromtimestamp(timestamp)
+        return jalali_datetime.strftime("%Y/%m/%d - %H:%M")
+
+
+admin.site.register(VerificationCode, VerificationCodeAdmin)
