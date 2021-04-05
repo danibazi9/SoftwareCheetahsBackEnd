@@ -78,14 +78,13 @@ def account_properties_view(request):
 
 @api_view(('GET',))
 def all_accounts_view(request):
-    query = Q()
-    if "search" in request.data:
-        search = request.data["search"]
-        query = Q(email__contains=search) | Q(first_name__contains=search) | Q(last_name__contains=search)
-
-    all_accounts = Account.objects.filter(query)
-
-    serializer = AccountPropertiesSerializer(all_accounts, many=True)
+    all_accounts = Account.objects.all()
+    result = []
+    search = request.GET["search"]
+    for a in all_accounts:
+        if search in a.email or search in a.first_name or search in a.last_name:
+            result.append(a)
+    serializer = AccountPropertiesSerializer(result, many=True)
     return Response(serializer.data)
 
 
