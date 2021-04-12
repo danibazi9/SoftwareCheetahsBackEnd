@@ -67,7 +67,7 @@ class Account(AbstractBaseUser):
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True)
 
     birthday = models.DateField(null=True, blank=True)
-    image = models.ImageField(upload_to='users/images/', blank=True)
+    image = models.FileField(upload_to='users/images/', blank=True)
     bio = models.TextField(blank=True)
 
     # auto-generate fields

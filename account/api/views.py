@@ -16,6 +16,7 @@ from rest_framework.authtoken.models import Token
 import random
 from rest_framework import status
 from django.db.models import Q
+import base64
 
 
 @api_view(['POST'])
@@ -113,6 +114,33 @@ class LogoutView(APIView):
         request.user.auth_token.delete()
         return Response("Successfully logged out!", status=status.HTTP_200_OK)
 
+
+@api_view(['POST', ])
+def update_account_image(request):
+    try:
+        account = request.user
+    except:
+        return Response({"message" : "token is not valid"}, status=status.HTTP_404_NOT_FOUND)
+    img = request.POST['base64']
+
+    image_name = str(account.user_id) + ".txt"
+
+    account.image = ContentFile(img, image_name)
+    account.save()
+    return Response({"message" : "profile image edit successfully"})
+
+@api_view(["GET", ])
+def show_account_image(request):
+    try:
+        account = request.user
+    except:
+        return Response({"message" : "token is not valid"}, status=status.HTTP_404_NOT_FOUND)
+
+    file = open(account.image.path, 'r')
+    img = file.read()
+    file.close()
+
+    return Response({"message" : "profile image send successfully", "base64" : img})
 
 @api_view(['POST', ])
 @permission_classes((IsAuthenticated,))
