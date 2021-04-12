@@ -5,7 +5,7 @@ from account.models import Account
 
 
 class Villa(models.Model):
-    id = models.AutoField(primary_key=True)
+    villa_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=40)
     TYPE_CHOICES = [
         ('Coastal', 'Coastal'),
