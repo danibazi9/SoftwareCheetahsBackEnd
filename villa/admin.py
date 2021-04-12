@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from account.models import Account
-from villa.models import Villa
+from villa.models import *
 
 
 class VillaAdmin(admin.ModelAdmin):
@@ -19,3 +19,19 @@ class VillaAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Villa, VillaAdmin)
+
+
+class ImageAdmin(admin.ModelAdmin):
+    list_display = ['image_id', 'title', 'get_villa', 'default']
+    search_fields = ['title']
+    list_filter = ['default']
+
+    def get_villa(self, obj):
+        result = Villa.objects.get(villa_id=obj.id)
+        return result.__str__()
+
+    class Meta:
+        model = Image
+
+
+admin.site.register(Image, ImageAdmin)

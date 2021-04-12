@@ -38,7 +38,7 @@ class Villa(models.Model):
 
 
 class Image(models.Model):
-    id = models.AutoField(primary_key=True)
+    image_id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=40, null=True, blank=True)
     villa = models.ForeignKey(Villa, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='villas/images/', blank=True, null=True)
