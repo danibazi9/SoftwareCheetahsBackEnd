@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'account',
     'villa',
-    'cities',
 ]
 
 AUTH_USER_MODEL = 'account.Account'
