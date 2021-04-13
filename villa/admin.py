@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-from account.models import Account
 from villa.models import *
 
 

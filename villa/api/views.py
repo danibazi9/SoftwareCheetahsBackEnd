@@ -1,5 +1,4 @@
 import base64
-import datetime
 import json
 
 from django.core.files.base import ContentFile
