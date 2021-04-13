@@ -4,6 +4,24 @@ from django.db import models
 from account.models import Account
 
 
+class Facility(models.Model):
+    facility_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
+
+
+class Image(models.Model):
+    image_id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=40, null=True, blank=True)
+    image = models.ImageField(upload_to='villas/images/')
+    default = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Image ID: {self.image_id}, Title: {self.title}"
+
+
 class Villa(models.Model):
     villa_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=40)
@@ -18,7 +36,9 @@ class Villa(models.Model):
     ]
     type = models.CharField(max_length=12, choices=TYPE_CHOICES)
     description = models.TextField(blank=True, null=True)
-    price_per_night = models.IntegerField(default=0)
+    price_per_night = models.IntegerField()
+    images = models.ManyToManyField(Image, blank=True)
+    facilities = models.ManyToManyField(Facility, blank=True)
     country = models.CharField(max_length=100)
     city = models.CharField(max_length=100)
     address = models.TextField()
@@ -35,14 +55,3 @@ class Villa(models.Model):
 
     def __str__(self):
         return self.name + ", Owner: " + self.owner.first_name + " " + self.owner.last_name
-
-
-class Image(models.Model):
-    image_id = models.AutoField(primary_key=True)
-    title = models.CharField(max_length=40, null=True, blank=True)
-    villa = models.ForeignKey(Villa, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='villas/images/', blank=True, null=True)
-    default = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.title + ' ' + self.image.url
