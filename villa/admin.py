@@ -1,18 +1,18 @@
 from django.contrib import admin
 
-# Register your models here.
 from account.models import Account
 from villa.models import *
 
 
+# Register your models here.
 class VillaAdmin(admin.ModelAdmin):
     list_display = ['villa_id', 'name', 'type', 'country', 'city', 'get_owner']
     search_fields = ['name', 'country', 'city']
     list_filter = ['type']
 
     def get_owner(self, obj):
-        result = Account.objects.get(id=obj.id)
-        return result.__str__()
+        result = Villa.objects.get(villa_id=obj.villa_id)
+        return result.owner.first_name + ' ' + result.owner.last_name
 
     class Meta:
         model = Villa
@@ -27,7 +27,7 @@ class ImageAdmin(admin.ModelAdmin):
     list_filter = ['default']
 
     def get_villa(self, obj):
-        result = Villa.objects.get(villa_id=obj.id)
+        result = Villa.objects.get(images__image_id=obj.image_id)
         return result.__str__()
 
     class Meta:
@@ -35,3 +35,14 @@ class ImageAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Image, ImageAdmin)
+
+
+class FacilityAdmin(admin.ModelAdmin):
+    list_display = ['facility_id', 'name']
+    search_fields = ['name']
+
+    class Meta:
+        model = Facility
+
+
+admin.site.register(Facility, FacilityAdmin)
