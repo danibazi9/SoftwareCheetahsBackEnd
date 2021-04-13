@@ -35,6 +35,14 @@ def upload_image(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST', ])
+@permission_classes((IsAuthenticated,))
+def remove_waste_images(request):
+    images_to_remove = Image.objects.filter(villa=None)
+    images_to_remove.delete()
+    return Response("Waste images removed successfully!", status=status.HTTP_200_OK)
+
+
 @permission_classes((IsAuthenticated,))
 class UserVilla(APIView):
     def get(self, args):
