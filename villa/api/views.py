@@ -24,6 +24,17 @@ def get_all_villas(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
+@api_view(['POST', ])
+@permission_classes((IsAuthenticated,))
+def upload_image(request):
+    serializer = ImageSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @permission_classes((IsAuthenticated,))
 class UserVilla(APIView):
     def get(self, args):
