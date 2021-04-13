@@ -21,6 +21,21 @@ def get_all_villas(request):
     serializer = VillaSerializer(all_villas, many=True)
     data = json.loads(json.dumps(serializer.data))
 
+    for x in data:
+        facilities_list = []
+
+        for facility_id in x['facilities']:
+            facility = Facility.objects.get(facility_id=facility_id)
+            facilities_list.append(facility.name)
+        x['facilities'] = facilities_list
+
+        images_list = []
+
+        for image_id in x['images']:
+            image = Image.objects.get(image_id=image_id)
+            images_list.append(image.image.url)
+        x['images'] = images_list
+
     return Response(data, status=status.HTTP_200_OK)
 
 
