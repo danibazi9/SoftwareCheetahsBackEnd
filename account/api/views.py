@@ -122,10 +122,12 @@ def update_account_image(request):
     except:
         return Response({"message" : "token is not valid"}, status=status.HTTP_404_NOT_FOUND)
     img = request.POST['base64']
+    if img == None:
+        account.image = None
+    else:
+        image_name = str(account.user_id) + ".txt"
 
-    image_name = str(account.user_id) + ".txt"
-
-    account.image = ContentFile(img, image_name)
+        account.image = ContentFile(img, image_name)
     account.save()
     return Response({"message" : "profile image edit successfully"})
 
