@@ -67,6 +67,7 @@ def registration_view(request):
 
 @api_view(['GET', ])
 def account_properties_view(request):
+    account = request.user
     try:
         account = request.user
     except Account.DoesNotExist:
@@ -85,7 +86,7 @@ def all_accounts_view(request):
         if search in a.email or search in a.first_name or search in a.last_name:
             result.append(a)
     serializer = AccountPropertiesSerializer(result, many=True)
-    return Response(serializer.data)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TokenObtainView(ObtainAuthToken):
