@@ -57,6 +57,17 @@ def upload_image(request):
 
 @api_view(['POST', ])
 @permission_classes((IsAuthenticated,))
+def upload_document(request):
+    serializer = DocumentSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST', ])
+@permission_classes((IsAuthenticated,))
 def remove_waste_images(request):
     images_to_remove = Image.objects.filter(villa=None)
     images_to_remove.delete()
