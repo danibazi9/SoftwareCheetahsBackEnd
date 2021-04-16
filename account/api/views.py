@@ -73,25 +73,20 @@ def account_properties_view(request):
     except Account.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    if request.method == 'GET':
-        serializer = AccountPropertiesSerializer(account)
-        return Response(serializer.data)
+    serializer = AccountPropertiesSerializer(account)
+    return Response(serializer.data)
 
 
 @api_view(('GET',))
 def all_accounts_view(request):
-    query = Q()
-    if "search" in request.GET:
-        query = query | Q(email__contains=request.GET["search"][0])
-        query = query | Q(first_name__contains=request.GET["search"][0])
-        query = query | Q(role__contains=request.GET["search"][0])   
-
-    all_accounts = Account.objects.filter(query)
-
-
-    if request.method == 'GET':
-        serializer = AccountPropertiesSerializer(all_accounts, many=True)
-        return Response(serializer.data)
+    all_accounts = Account.objects.all()
+    result = []
+    search = request.GET["search"]
+    for a in all_accounts:
+        if search in a.email or search in a.first_name or search in a.last_name:
+            result.append(a)
+    serializer = AccountPropertiesSerializer(result, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TokenObtainView(ObtainAuthToken):
@@ -141,9 +136,6 @@ def update_account_view(request):
         
     if 'phone_number' in data:
         account.phone_number = data['phone_number']
-
-    if 'gender' in data:
-        gender = data['gender']
 
     if 'gender' in data:
         gender = data['gender']
