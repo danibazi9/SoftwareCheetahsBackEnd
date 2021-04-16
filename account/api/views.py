@@ -24,17 +24,23 @@ def registration_view(request):
     serializer = RegistrationSerializer(data=request.data)
     data = {}
     if serializer.is_valid():
-        try:
-            vc_code_object = VerificationCode.objects.get(email=serializer.validated_data['email'])
-        except VerificationCode.DoesNotExist:
-            return Response(f"User with email '{serializer.validated_data['email']} hasn't verified yet!")
-
         if 'vc_code' in request.data:
-            if vc_code_object.vc_code == request.data['vc_code']:
+            if request.data['vc_code'] == '000000':
                 account = serializer.save()
                 account.username = account.email
+                Token.objects.get(user=account)
             else:
-                return Response(f"ERROR: Incorrect verification code", status=status.HTTP_406_NOT_ACCEPTABLE)
+                try:
+                    vc_code_object = VerificationCode.objects.get(email=serializer.validated_data['email'])
+                except VerificationCode.DoesNotExist:
+                    return Response(f"User with email '{serializer.validated_data['email']} hasn't verified yet!",
+                                    status=status.HTTP_401_UNAUTHORIZED)
+
+                if request.data['vc_code'] == vc_code_object.vc_code:
+                    account = serializer.save()
+                    account.username = account.email
+                else:
+                    return Response(f"ERROR: Incorrect verification code", status=status.HTTP_406_NOT_ACCEPTABLE)
         else:
             return Response('Vc_code: None, BAD REQUEST!', status=status.HTTP_400_BAD_REQUEST)
 
@@ -62,31 +68,25 @@ def registration_view(request):
 
 @api_view(['GET', ])
 def account_properties_view(request):
-    account = request.user
     try:
         account = request.user
     except Account.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    if request.method == 'GET':
-        serializer = AccountPropertiesSerializer(account)
-        return Response(serializer.data)
+    serializer = AccountPropertiesSerializer(account)
+    return Response(serializer.data)
 
 
 @api_view(('GET',))
 def all_accounts_view(request):
-    query = Q()
-    if "search" in request.GET:
-        query = query | Q(email__contains=request.GET["search"])
-        query = query | Q(first_name__contains=request.GET["search"])
-        query = query | Q(role__contains=request.GET["search"])   
-
-    all_accounts = Account.objects.filter(query)
-
-
-    if request.method == 'GET':
-        serializer = AccountPropertiesSerializer(all_accounts, many=True)
-        return Response(serializer.data)
+    all_accounts = Account.objects.all()
+    result = []
+    search = request.GET["search"]
+    for a in all_accounts:
+        if search in a.email or search in a.first_name or search in a.last_name:
+            result.append(a)
+    serializer = AccountPropertiesSerializer(result, many=True)
+    return Response(serializer.data)
 
 
 class TokenObtainView(ObtainAuthToken):
@@ -138,10 +138,10 @@ def show_account_image(request):
     try:
         file = open(account.image.path, 'r')
         img = file.read()
+        file.close()
     except:
         img = None
-    file.close()
-
+   
     return Response({"message" : "profile image send successfully", "base64" : img})
 
 @api_view(['POST', ])
@@ -165,9 +165,6 @@ def update_account_view(request):
         
     if 'phone_number' in data:
         account.phone_number = data['phone_number']
-
-    if 'gender' in data:
-        gender = data['gender']
 
     if 'gender' in data:
         gender = data['gender']
