@@ -135,9 +135,11 @@ def show_account_image(request):
         account = request.user
     except:
         return Response({"message" : "token is not valid"}, status=status.HTTP_404_NOT_FOUND)
-
-    file = open(account.image.path, 'r')
-    img = file.read()
+    try:
+        file = open(account.image.path, 'r')
+        img = file.read()
+    except:
+        img = None
     file.close()
 
     return Response({"message" : "profile image send successfully", "base64" : img})
