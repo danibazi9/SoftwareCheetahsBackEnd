@@ -22,6 +22,15 @@ class Image(models.Model):
         return f"Image ID: {self.image_id}, Title: {self.title}"
 
 
+class Document(models.Model):
+    document_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(Account, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='villas/documents/')
+
+    def __str__(self):
+        return f"Document ID: {self.document_id}, Owner: {self.user.first_name} {self.user.last_name}"
+
+
 class Villa(models.Model):
     villa_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=40)
