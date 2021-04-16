@@ -42,6 +42,7 @@ class Villa(models.Model):
         ('Desert', 'Desert'),
         ('Rural', 'Rural'),
         ('Suburban', 'Suburban'),
+        ('Motel', 'Motel'),
     ]
     type = models.CharField(max_length=12, choices=TYPE_CHOICES)
     description = models.TextField(blank=True, null=True)
