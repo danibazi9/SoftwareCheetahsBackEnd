@@ -58,7 +58,10 @@ def upload_image(request):
 @api_view(['POST', ])
 @permission_classes((IsAuthenticated,))
 def upload_document(request):
-    serializer = DocumentSerializer(data=request.data)
+    data = request.data
+    data['user'] = request.user.user_id
+
+    serializer = DocumentSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
