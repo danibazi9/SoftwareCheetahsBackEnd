@@ -36,6 +36,21 @@ class ImageAdmin(admin.ModelAdmin):
 admin.site.register(Image, ImageAdmin)
 
 
+class DocumentAdmin(admin.ModelAdmin):
+    list_display = ['document_id', 'get_user']
+    list_filter = ['user']
+
+    def get_user(self, obj):
+        result = Account.objects.get(user_id=obj.user_id)
+        return result.__str__()
+
+    class Meta:
+        model = Document
+
+
+admin.site.register(Document, DocumentAdmin)
+
+
 class FacilityAdmin(admin.ModelAdmin):
     list_display = ['facility_id', 'name']
     search_fields = ['name']
