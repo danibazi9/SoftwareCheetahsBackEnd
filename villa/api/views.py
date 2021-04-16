@@ -41,10 +41,16 @@ def get_all_villas(request):
 @api_view(['POST', ])
 @permission_classes((IsAuthenticated,))
 def upload_image(request):
-    serializer = ImageSerializer(data=request.data)
+    if 'file' in request.data.keys():
+        new_data = request.data
+        new_data['image'] = request.data['file']
+        new_data['file'] = None
+        serializer = ImageSerializer(data=new_data)
+    else:
+        serializer = ImageSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
