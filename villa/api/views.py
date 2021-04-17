@@ -79,14 +79,6 @@ def check_document_existence(request):
         return Response('No document exist!', status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(['POST', ])
-@permission_classes((IsAuthenticated,))
-def remove_waste_images(request):
-    images_to_remove = Image.objects.filter(villa=None)
-    images_to_remove.delete()
-    return Response("Waste images removed successfully!", status=status.HTTP_200_OK)
-
-
 @permission_classes((IsAuthenticated,))
 class UserVilla(APIView):
     def get(self, args):
