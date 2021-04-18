@@ -24,11 +24,10 @@ class Image(models.Model):
 
 class Document(models.Model):
     document_id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(Account, on_delete=models.CASCADE)
     file = models.FileField(upload_to='villas/documents/')
 
     def __str__(self):
-        return f"Document ID: {self.document_id}, Owner: {self.user.first_name} {self.user.last_name}"
+        return f"Document ID: {self.document_id}"
 
 
 class Villa(models.Model):
@@ -53,16 +52,19 @@ class Villa(models.Model):
     state = models.CharField(max_length=100)
     city = models.CharField(max_length=100)
     address = models.TextField()
+    postal_code = models.CharField(max_length=10, unique=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
     area = models.IntegerField()
     owner = models.ForeignKey(Account, on_delete=models.CASCADE)
     capacity = models.IntegerField()
+    max_capacity = models.IntegerField()
     number_of_bathrooms = models.IntegerField(default=1)
     number_of_bedrooms = models.IntegerField(default=1)
     number_of_single_beds = models.IntegerField(default=1)
     number_of_double_beds = models.IntegerField(default=1)
     number_of_showers = models.IntegerField(default=1)
+    documents = models.ManyToManyField(Document, blank=True)
 
     def __str__(self):
         return self.name + ", Owner: " + self.owner.first_name + " " + self.owner.last_name
