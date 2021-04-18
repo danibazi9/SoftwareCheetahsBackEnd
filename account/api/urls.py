@@ -13,4 +13,5 @@ urlpatterns = [
     path('send-email', send_email, name='send_email'),
     path('properties/all', all_accounts_view, name="properties_all"),
     path('check-existence', check_email_existence, name="check-existence"),
+    path('upload-documents', upload_document),
 ]
