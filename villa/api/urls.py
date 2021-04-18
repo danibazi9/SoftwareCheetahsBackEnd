@@ -8,5 +8,4 @@ urlpatterns = [
     path('user/', views.UserVilla.as_view()),
     path('user/images/', views.upload_image),
     path('user/documents/', views.upload_document),
-    path('user/check-document-existence/', views.check_document_existence),
 ]

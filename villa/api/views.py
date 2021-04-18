@@ -66,16 +66,6 @@ def upload_document(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', ])
-@permission_classes((IsAuthenticated,))
-def check_document_existence(request):
-    documents = Document.objects.filter(user=request.user)
-    if len(documents) > 0:
-        return Response('Document found successfully!', status=status.HTTP_200_OK)
-    else:
-        return Response('No document exist!', status=status.HTTP_404_NOT_FOUND)
-
-
 @permission_classes((IsAuthenticated,))
 class UserVilla(APIView):
     def get(self, args):
