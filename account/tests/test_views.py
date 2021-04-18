@@ -196,12 +196,43 @@ class ProfilePictureTest(TestCase):
         )
 
         self.valid_token, self.created = Token.objects.get_or_create(user=account)
-        #self.invalid_token = '7900b33a300eff557ebbe2d5261d00e2eaaac880'
+        self.invalid_token = '7900b33a300eff557ebbe2d5261d00e2eaaac880'
 
     def test_update_account_image(self):
         data = {'base64': 'test'}
         response = client.post(
             reverse('account:update_account_image'),
+            data=json.dumps(data),
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token.key),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_205_RESET_CONTENT) 
+
+    def test_invalid_update_account_image(self):
+        data = {'base64': 'test_image'}
+        response = client.post(
+            reverse('account:update_account_image'),
+            data=json.dumps(data),
+            HTTP_AUTHORIZATION=f'Token {self.invalid_token}',
+            content_type='application/json'
+        )
+        self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_show_account_image(self):
+        response = client.get(
+            reverse('account:show_account_image'),
+            data={},
+            HTTP_AUTHORIZATION=f"Token {self.valid_token}",
+        )
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+    def test_invalid_show_account_image(self):
+        response = client.get(
+            reverse('account:show_account_image'),
+            data={},
+            HTTP_AUTHORIZATION=f"Token {self.invalid_token}"
+        )
+        self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class ProfileTest(TestCase):
 
