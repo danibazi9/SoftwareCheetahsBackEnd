@@ -58,10 +58,7 @@ def upload_image(request):
 @api_view(['POST', ])
 @permission_classes((IsAuthenticated,))
 def upload_document(request):
-    data = request.data
-    data['user'] = request.user.user_id
-
-    serializer = DocumentSerializer(data=data)
+    serializer = DocumentSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -103,6 +100,7 @@ class UserVilla(APIView):
         serializer = VillaSerializer(data=data)
         if serializer.is_valid():
             images_to_add = []
+            documents_to_add = []
             facilities_list = []
 
             if 'image_id_list' in data:
@@ -114,6 +112,17 @@ class UserVilla(APIView):
                             images_to_add.append(image_to_add)
                         except Image.DoesNotExist:
                             return Response(f"Image with image_id {id} NOT FOUND!", status=status.HTTP_404_NOT_FOUND)
+
+            if 'doc_id_list' in data:
+                list_of_doc_ids = data['doc_id_list']
+                if len(list_of_doc_ids) > 0:
+                    for id in list_of_doc_ids:
+                        try:
+                            doc_to_add = Document.objects.get(document_id=id)
+                            documents_to_add.append(doc_to_add)
+                        except Document.DoesNotExist:
+                            return Response(f"Document with document_id {id} NOT FOUND!",
+                                            status=status.HTTP_404_NOT_FOUND)
 
             if 'facilities_list' in data:
                 for facility in data['facilities_list']:
@@ -146,6 +155,9 @@ class UserVilla(APIView):
 
         for image in images_to_add:
             villa.images.add(image)
+
+        for document in documents_to_add:
+            villa.documents.add(document)
 
         for facility in facilities_list:
             villa.facilities.add(facility)
