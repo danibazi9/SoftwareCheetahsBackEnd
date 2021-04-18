@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_cleanup',
     'rest_framework.authtoken',
+    'django_crontab',
     'account',
+    'villa',
 ]
 
 AUTH_USER_MODEL = 'account.Account'
@@ -97,6 +99,11 @@ DATABASES = {
     }
 }
 
+# cronjobs
+CRONJOBS = [
+    ('*/1 * * * *', 'tasks.remove_waste_images')
+    # ('*/60 0 * * *', 'tasks.remove_waste_images')
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

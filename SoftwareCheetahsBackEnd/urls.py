@@ -22,6 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     path('api/account/', include('account.api.urls', 'account_api')),
+    path('api/villa/', include('villa.api.urls', 'villa_api')),
 ]
 
 # might make an error when we False debug in deploying
