@@ -165,8 +165,6 @@ class UserVilla(APIView):
 def search(request):
     query = Q()
     data = request.GET
-    print('------------',data)
-    #print(data['country'],data['city'])
     if 'country' in data.keys():
         query = query & Q(country=data['country'])
 
@@ -174,8 +172,6 @@ def search(request):
         query = query & Q(city=data['city'])    
 
     villas = Villa.objects.filter(query)
-    #print(villas)
     serializer = VillaSerializer(data=villas, many=True)
     serializer.is_valid()
-    #print(serializer.data)
     return Response({"message":'search successfully' , "data" : serializer.data}, status=status.HTTP_200_OK)
