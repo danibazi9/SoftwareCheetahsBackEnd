@@ -50,6 +50,7 @@ class Villa(models.Model):
     images = models.ManyToManyField(Image, blank=True)
     facilities = models.ManyToManyField(Facility, blank=True)
     country = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
     city = models.CharField(max_length=100)
     address = models.TextField()
     latitude = models.FloatField()
