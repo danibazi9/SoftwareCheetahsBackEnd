@@ -162,6 +162,30 @@ def update_account_view(request):
     return Response(data, status=status.HTTP_205_RESET_CONTENT)
 
 
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def check_document_existence(request):
+    documents = Document.objects.filter(user=request.user)
+    if len(documents) > 0:
+        return Response('Document found successfully!', status=status.HTTP_200_OK)
+    else:
+        return Response('No document exist!', status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST', ])
+@permission_classes((IsAuthenticated,))
+def upload_document(request):
+    data = request.data
+    data['user'] = request.user.user_id
+
+    serializer = DocumentSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['POST'])
 def send_email(request):
     if 'email' not in request.data:
