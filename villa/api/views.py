@@ -52,8 +52,8 @@ def upload_image(request):
                 filename = request.data['filename']
                 file = ContentFile(base64.b64decode(request.data['image_file']), name=filename)
                 new_image = Image.objects.create(image=file)
-                data = {'image_id': new_image.image_id, 'title': new_image.title, 'image': new_image.image.url, 'default': new_image.default}
-                return Response(data, status=status.HTTP_200_OK)
+                serializer = ImageSerializer(new_image)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             except Exception as e:
                 return Response(f"ERROR: {e}", status=status.HTTP_400_BAD_REQUEST)
         else:
