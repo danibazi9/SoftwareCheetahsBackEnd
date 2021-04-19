@@ -15,7 +15,7 @@ from villa.models import *
 @api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
 def get_all_villas(request):
-    all_villas = Villa.objects.all()
+    all_villas = Villa.objects.filter(owner=request.user)
 
     serializer = VillaSerializer(all_villas, many=True)
     data = json.loads(json.dumps(serializer.data))
