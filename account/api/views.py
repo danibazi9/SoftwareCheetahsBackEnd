@@ -18,6 +18,7 @@ from rest_framework import status
 from django.db.models import Q
 import base64
 
+from SoftwareCheetahsBackEnd import settings
 
 @api_view(['POST'])
 def registration_view(request):
@@ -119,26 +120,23 @@ class LogoutView(APIView):
 def update_account_image(request):
     account = request.user
     img = request.data['base64']
+    format, imgstr = img.split(';base64,') 
     if img == None:
         account.image = None
     else:
-        image_name = str(account.user_id) + ".txt"
+        image_name = str(account.user_id) + ".png"
 
-        account.image = ContentFile(img, image_name)
+        #account.image = ContentFile(base64.b64decode(img+"=="), image_name)
+        file = ContentFile(base64.b64decode(imgstr), name=image_name)
+        account.image = file
     account.save()
     return Response({"message" : "profile image edit successfully"}, status=status.HTTP_205_RESET_CONTENT)
 
 @api_view(["GET", ])
 def show_account_image(request):
     account = request.user
-    try:
-        file = open(account.image.path, 'r')
-        img = file.read()
-        file.close()
-    except:
-        img = None
    
-    return Response({"message" : "profile image send successfully", "base64" : img}, status=status.HTTP_200_OK)
+    return Response({"message" : "profile image send successfully", "base64_url" : settings.MEDIA_URL + str(account.image)}, status=status.HTTP_200_OK)
 
 @api_view(['POST', ])
 @permission_classes((IsAuthenticated,))
