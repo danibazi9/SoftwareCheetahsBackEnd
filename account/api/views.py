@@ -137,10 +137,10 @@ def update_account_image(request):
 def show_account_image(request):
     account = request.user
     print(account.image)
-    if str(account.image) == '':
+    if str(account.image.url) == '':
         image_url = None
     else:
-        image_url = settings.MEDIA_URL + str(account.image)
+        image_url = str(account.image.url)
     return Response({"message" : "profile image send successfully", "base64_url" : image_url}, status=status.HTTP_200_OK)
 
 @api_view(['POST', ])
