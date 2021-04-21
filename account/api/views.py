@@ -120,7 +120,8 @@ class LogoutView(APIView):
 @api_view(['POST', ])
 def update_account_image(request):
     account = request.user
-    img = request.data['base64']
+    data = json.loads(request.body)
+    img = data['base64']
     format, imgstr = img.split(';base64,') 
     if img == None:
         account.image = None
@@ -131,7 +132,7 @@ def update_account_image(request):
         file = ContentFile(base64.b64decode(imgstr), name=image_name)
         account.image = file
     account.save()
-    return Response({"message" : "profile image edit successfully"}, status=status.HTTP_205_RESET_CONTENT)
+    return Response({"message" : "profile image edit successfully", 'base64_url':account.image.url}, status=status.HTTP_205_RESET_CONTENT)
 
 @api_view(["GET", ])
 def show_account_image(request):
