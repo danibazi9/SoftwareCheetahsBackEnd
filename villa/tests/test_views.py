@@ -88,15 +88,19 @@ class CalendarTest(TestCase):
             gender='Male',
             password='123456'
         )
+        owner.username = owner.email
+        owner.save()
 
         customer = Account.objects.create(
             first_name='Sadegh',
             last_name='Jafari',
             email='sadeghjafari@gmail.com',
-            phone_number='+989152147655',
+            phone_number='+989152147501',
             gender='Male',
             password='123456'
         )
+        customer.username = customer.email
+        customer.save()
 
         v1 = Villa.objects.create(
             name='test1',
@@ -151,5 +155,17 @@ class CalendarTest(TestCase):
         tests = [{'villa_id':1}, {'villa_id':2}]
         outputs = [2, 1]
 
-        for test in tests:
-            pass
+        for test in range(len(tests)):
+            responce = client.get(
+                reverse("villa:show_calendar"),
+                data=tests[test]
+            )
+            self.assertEquals(len(responce.data['dates']), outputs[test])
+
+    def test_invalid_show_calendar(self):
+        
+        responce = client.get(
+            reverse("villa:show_calendar"),
+            data={"villa_id":5}
+        )
+        self.assertEquals(responce.status_code, status.HTTP_404_NOT_FOUND)

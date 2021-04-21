@@ -175,3 +175,15 @@ def search(request):
     serializer = VillaSerializer(data=villas, many=True)
     serializer.is_valid()
     return Response({"message":'search successfully' , "data" : serializer.data}, status=status.HTTP_200_OK)
+
+@api_view(['GET', ])
+def show_villa_calendar(request):
+    try:
+        villa = Villa.objects.get(villa_id=request.GET['villa_id'])
+    except:
+        return Response({'message':'villa does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    dates = Calendar.objects.filter(villa=villa)
+    serializer = ShowVillaCalendarSerializer(data=dates, many=True)
+    serializer.is_valid()
+    data = serializer.data
+    return Response({'message':'show villa calendar successfully', 'dates':data}, status=status.HTTP_200_OK)

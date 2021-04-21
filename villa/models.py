@@ -67,7 +67,8 @@ class Villa(models.Model):
         return self.name + ", Owner: " + self.owner.first_name + " " + self.owner.last_name
 
 class Calendar(models.Model):
-    customer = models.ForeignKey(Account, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Account, on_delete=models.CASCADE, null=True)
     villa = models.ForeignKey(Villa, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField() 
+    closed = models.BooleanField(default=False)
