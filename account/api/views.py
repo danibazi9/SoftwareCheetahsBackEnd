@@ -120,7 +120,8 @@ class LogoutView(APIView):
 @api_view(['POST', ])
 def update_account_image(request):
     account = request.user
-    data = json.loads(request.body)
+    data = request.data
+    #data = json.loads(request.body)
     img = data['base64']
     format, imgstr = img.split(';base64,') 
     if img == None:
