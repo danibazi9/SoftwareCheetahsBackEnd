@@ -35,6 +35,13 @@ def get_all_villas(request):
             images_list.append(image.image.url)
         x['images'] = images_list
 
+        documents_list = []
+
+        for document_id in x['documents']:
+            document = Document.objects.get(document_id=document_id)
+            documents_list.append(document.file.url)
+        x['documents'] = documents_list
+
     return Response(data, status=status.HTTP_200_OK)
 
 
