@@ -96,6 +96,27 @@ class UserVilla(APIView):
             serializer = VillaSerializer(villa)
             data = json.loads(json.dumps(serializer.data))
 
+            facilities_list = []
+
+            for facility_id in data['facilities']:
+                facility = Facility.objects.get(facility_id=facility_id)
+                facilities_list.append(facility.name)
+            data['facilities'] = facilities_list
+
+            images_list = []
+
+            for image_id in data['images']:
+                image = Image.objects.get(image_id=image_id)
+                images_list.append(image.image.url)
+            data['images'] = images_list
+
+            documents_list = []
+
+            for document_id in data['documents']:
+                document = Document.objects.get(document_id=document_id)
+                documents_list.append(document.file.url)
+            data['documents'] = documents_list
+
             return Response(data, status=status.HTTP_200_OK)
         else:
             return Response("Villa_id: None, BAD REQUEST", status=status.HTTP_400_BAD_REQUEST)
