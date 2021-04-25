@@ -15,7 +15,7 @@ from villa.models import *
 @api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
 def get_all_villas(request):
-    all_villas = Villa.objects.filter(owner=request.user)
+    all_villas = Villa.objects.filter(owner=request.user, visible=True)
 
     serializer = VillaSerializer(all_villas, many=True)
     data = json.loads(json.dumps(serializer.data))
@@ -95,6 +95,17 @@ class UserVilla(APIView):
 
             serializer = VillaSerializer(villa)
             data = json.loads(json.dumps(serializer.data))
+
+            visible = self.request.query_params.get('visible', None)
+            if visible is not None:
+                if visible == 'true':
+                    villa.visible = True
+                elif visible == 'false':
+                    villa.visible = False
+                else:
+                    return Response("Visible: BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
+            villa.save()
 
             facilities_list = []
 
