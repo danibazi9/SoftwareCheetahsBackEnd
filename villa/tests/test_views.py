@@ -170,7 +170,7 @@ class UploadDocumentTest(TestCase):
             'image': document
         }
 
-    def test_upload_valid_image(self):
+    def test_upload_valid_document(self):
         response = client.post(
             reverse('villa:upload_document'),
             data=self.valid_upload,
@@ -178,7 +178,7 @@ class UploadDocumentTest(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_upload_invalid_image(self):
+    def test_upload_invalid_document(self):
         response = client.post(
             reverse('villa:upload_document'),
             data=self.invalid_upload,
@@ -193,7 +193,7 @@ class UploadDocumentTest(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_upload__image_unauthorized(self):
+    def test_upload__document_unauthorized(self):
         response = client.post(
             reverse('villa:upload_document'),
             data=self.valid_upload,
@@ -202,3 +202,84 @@ class UploadDocumentTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+class AddVillaTest(TestCase):
+    """ Test module for adding a new villa in database """
+
+    def setUp(self):
+        new_user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=new_user)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+
+        self.valid_villa = {
+            'name': 'My Villaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3453342@$%@$%^^56#7865xcvxcvxv2345665DFSDFDSasdasd4',
+            'type': 'Coastal',
+            'price_per_night': 3456765432234567,
+            'country': 'Irannnnsdfthg3$%#@#',
+            'state': 'Mazandaran',
+            'city': 'Sari',
+            'address': 'St 2.',
+            'postal_code': '1234567890',
+            'latitude': 1250.522,
+            'longitude': 4855.785,
+            'facilities_list': [
+                'Washer',
+                'Heater'
+            ],
+            'area': 15200,
+            'owner': new_user,
+            'capacity': 10,
+            'max_capacity': 15,
+            'number_of_bathrooms': 234564324,
+            'number_of_bedrooms': 2344534,
+            'number_of_single_beds': 2343454,
+            'number_of_double_beds': 14444,
+            'number_of_showers': 4452
+        }
+
+        self.invalid_villa = {
+            'name': 'My dfsgjet5@$%@$%^^56#7865xcvxcvxv2345665DFSDFDSasdasd4',
+            'type': 'Coastal',
+        }
+
+        # self.invalid_upload2 = {
+        #     'image': document
+        # }
+
+    # def test_add_valid_villa(self):
+    #     response = client.post(
+    #         reverse('villa:villa_apis'),
+    #         data=self.valid_villa,
+    #         HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+    #     )
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_add_invalid_villa(self):
+        response = client.post(
+            reverse('villa:villa_apis'),
+            data=self.invalid_villa,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # response = client.post(
+        #     reverse('villa:upload_document'),
+        #     data=self.invalid_upload2,
+        #     HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        # )
+        # self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_add__villa_unauthorized(self):
+        response = client.post(
+            reverse('villa:villa_apis'),
+            data=self.valid_villa,
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
