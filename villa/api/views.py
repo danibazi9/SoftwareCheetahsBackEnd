@@ -15,7 +15,7 @@ from villa.models import *
 @api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
 def get_all_villas(request):
-    all_villas = Villa.objects.filter(owner=request.user)
+    all_villas = Villa.objects.filter(owner=request.user, visible=True)
 
     serializer = VillaSerializer(all_villas, many=True)
     data = json.loads(json.dumps(serializer.data))
@@ -35,6 +35,13 @@ def get_all_villas(request):
             images_list.append(image.image.url)
         x['images'] = images_list
 
+        documents_list = []
+
+        for document_id in x['documents']:
+            document = Document.objects.get(document_id=document_id)
+            documents_list.append(document.file.url)
+        x['documents'] = documents_list
+
     return Response(data, status=status.HTTP_200_OK)
 
 
@@ -52,8 +59,8 @@ def upload_image(request):
                 filename = request.data['filename']
                 file = ContentFile(base64.b64decode(request.data['image_file']), name=filename)
                 new_image = Image.objects.create(image=file)
-                data = {'image_id': new_image.image_id, 'title': new_image.title, 'image': new_image.image.url, 'default': new_image.default}
-                return Response(data, status=status.HTTP_200_OK)
+                serializer = ImageSerializer(new_image)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             except Exception as e:
                 return Response(f"ERROR: {e}", status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -88,6 +95,38 @@ class UserVilla(APIView):
 
             serializer = VillaSerializer(villa)
             data = json.loads(json.dumps(serializer.data))
+
+            visible = self.request.query_params.get('visible', None)
+            if visible is not None:
+                if visible == 'true':
+                    villa.visible = True
+                elif visible == 'false':
+                    villa.visible = False
+                else:
+                    return Response("Visible: BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
+            villa.save()
+
+            facilities_list = []
+
+            for facility_id in data['facilities']:
+                facility = Facility.objects.get(facility_id=facility_id)
+                facilities_list.append(facility.name)
+            data['facilities'] = facilities_list
+
+            images_list = []
+
+            for image_id in data['images']:
+                image = Image.objects.get(image_id=image_id)
+                images_list.append(image.image.url)
+            data['images'] = images_list
+
+            documents_list = []
+
+            for document_id in data['documents']:
+                document = Document.objects.get(document_id=document_id)
+                documents_list.append(document.file.url)
+            data['documents'] = documents_list
 
             return Response(data, status=status.HTTP_200_OK)
         else:
