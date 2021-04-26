@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_cleanup',
     'rest_framework.authtoken',
     'django_crontab',
 
@@ -150,6 +151,8 @@ USE_TZ = True
 '''STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'''
 STATIC_URL = '/static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticsfile')
+
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
 )
@@ -160,6 +163,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "live-static", "static-root")
 
 #STATIC_ROOT = "/home/cfedeploy/webapps/cfehome_static_root/"
 
-MEDIA_URL = "/media/"
+MEDIA_URL = "/live-static/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "live-static", "media-root")
