@@ -19,7 +19,7 @@ class VillaTest(TestCase):
             password='123456'
         )
 
-        new_villa = Villa.objects.create(
+        Villa.objects.create(
             name='My Villa',
             type='Coastal',
             price_per_night=2500,
