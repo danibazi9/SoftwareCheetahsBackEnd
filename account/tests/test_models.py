@@ -1,6 +1,9 @@
+from unittest import mock
+
+from django.core.files import File
 from django.test import TestCase
 
-from account.models import Account
+from account.models import Account, Document
 
 
 class AccountTest(TestCase):
@@ -27,3 +30,16 @@ class AccountTest(TestCase):
     def test_account_gender(self):
         account = Account.objects.get(email='danibazi9@gmail.com')
         self.assertEqual(account.gender, 'Male')
+
+    def test_account_documents(self):
+        account = Account.objects.get(email='danibazi9@gmail.com')
+
+        file_mock = mock.MagicMock(spec=File)
+        file_mock.name = 'test.pdf'
+
+        new_document = Document.objects.create(
+            user=account,
+            file=file_mock
+        )
+
+        self.assertEqual(Document.objects.get(user=account), new_document)
