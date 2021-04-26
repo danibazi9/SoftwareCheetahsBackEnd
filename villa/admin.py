@@ -5,7 +5,7 @@ from villa.models import *
 
 # Register your models here.
 class VillaAdmin(admin.ModelAdmin):
-    list_display = ['villa_id', 'name', 'type', 'country', 'city', 'get_owner']
+    list_display = ['villa_id', 'name', 'type', 'country', 'city', 'get_owner', 'visible']
     search_fields = ['name', 'country', 'city']
     list_filter = ['type']
 

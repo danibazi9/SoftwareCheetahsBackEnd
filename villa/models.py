@@ -65,6 +65,7 @@ class Villa(models.Model):
     number_of_double_beds = models.IntegerField(default=1)
     number_of_showers = models.IntegerField(default=1)
     documents = models.ManyToManyField(Document, blank=True)
+    visible = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name + ", Owner: " + self.owner.first_name + " " + self.owner.last_name
