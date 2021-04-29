@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django_cleanup',
     'rest_framework.authtoken',
     'django_crontab',
-
+    'chat',
     'account',
     'villa',
 ]
@@ -166,3 +166,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "live-static", "static-root")
 MEDIA_URL = "/live-static/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "live-static", "media-root")
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
+
