@@ -55,3 +55,5 @@ class FacilityAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Facility, FacilityAdmin)
+
+admin.site.register(Calendar)
