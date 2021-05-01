@@ -189,6 +189,7 @@ class EmailTest(TestCase):
 class ProfilePictureTest(TestCase):
     def setUp(self):
         settings.MEDIA_ROOT = tempfile.mkdtemp()
+        
         account = Account.objects.create(
             first_name='Danial',
             last_name='Bazmandeh',

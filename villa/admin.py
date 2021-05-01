@@ -5,7 +5,7 @@ from villa.models import *
 
 # Register your models here.
 class VillaAdmin(admin.ModelAdmin):
-    list_display = ['villa_id', 'name', 'type', 'country', 'city', 'get_owner']
+    list_display = ['villa_id', 'name', 'type', 'country', 'city', 'get_owner', 'visible']
     search_fields = ['name', 'country', 'city']
     list_filter = ['type']
 
@@ -37,12 +37,7 @@ admin.site.register(Image, ImageAdmin)
 
 
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ['document_id', 'get_user']
-    list_filter = ['user']
-
-    def get_user(self, obj):
-        result = Account.objects.get(user_id=obj.user_id)
-        return result.__str__()
+    list_display = ['document_id']
 
     class Meta:
         model = Document

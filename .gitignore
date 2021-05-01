@@ -19,6 +19,7 @@ eggs/
 lib/
 lib64/
 parts/
+live-static/
 sdist/
 var/
 wheels/
@@ -102,7 +103,6 @@ ENV/
 .mypy_cache/
 
 .DS_Store
-*.sqlite3
 media/
 *.pyc
 *.db
