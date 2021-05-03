@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 
 from villa.api.serializer import *
 from villa.models import *
@@ -210,3 +211,40 @@ class UserVilla(APIView):
 
         return Response(f"Villa with villa_id {villa.villa_id} created successfully!",
                         status=status.HTTP_201_CREATED)
+
+@permission_classes((IsAuthenticated,))
+@api_view(['GET', ])
+def search(request):
+    query = Q()
+    data = request.GET
+    if 'country' in data.keys():
+        query = query & Q(country=data['country'])
+
+    if 'city' in data.keys():
+        query = query & Q(city=data['city'])    
+
+    if 'state' in data.keys():
+        query = query & Q(state=data['state'])    
+
+    villas = Villa.objects.filter(query)
+    serializer = VillaSearchSerializer(data=villas, many=True)
+    serializer.is_valid()
+    len_data = len(serializer.data)
+    if int(data['number_of_villa']) < len_data:
+        start = (int(data['page']) - 1) * int(data['number_of_villa'])
+        end = min(int(data['page']) * int(data['number_of_villa']) , len_data)
+        return Response({"message":'search successfully' , "data" : serializer.data[start:end]}, status=status.HTTP_200_OK)
+    else:
+        return Response({"message":'search successfully' , "data" : serializer.data}, status=status.HTTP_200_OK)
+
+@api_view(['GET', ])
+def show_villa_calendar(request):
+    try:
+        villa = Villa.objects.get(villa_id=request.GET['villa_id'])
+    except:
+        return Response({'message':'villa does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    dates = Calendar.objects.filter(villa=villa)
+    serializer = ShowVillaCalendarSerializer(data=dates, many=True)
+    serializer.is_valid()
+    data = serializer.data
+    return Response({'message':'show villa calendar successfully', 'dates':data}, status=status.HTTP_200_OK)

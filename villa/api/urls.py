@@ -8,4 +8,7 @@ urlpatterns = [
     path('user/', views.UserVilla.as_view(), name='villa_apis'),
     path('user/images/', views.upload_image, name='upload_image'),
     path('user/documents/', views.upload_document, name='upload_document'),
+    #path('user/check-document-existence/', views.check_document_existence, name='check_document_existence'),
+    path('search/',views.search,name='search'),
+    path('calendar/show/', views.show_villa_calendar,name='show_calendar')
 ]

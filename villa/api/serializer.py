@@ -8,6 +8,12 @@ class VillaSerializer(serializers.ModelSerializer):
         model = Villa
         fields = '__all__'
 
+class VillaSearchSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Villa
+        fields = ['name', 'country', 'state', 'city', 'price_per_night']
+
 
 class ImageSerializer(serializers.ModelSerializer):
 
@@ -21,3 +27,9 @@ class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields = '__all__'
+
+class ShowVillaCalendarSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Calendar
+        fields = ['villa', 'start_date','end_date', 'closed']
