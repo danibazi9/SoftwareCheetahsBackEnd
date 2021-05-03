@@ -12,7 +12,7 @@ class VillaSearchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Villa
-        fields = ['name', 'country', 'state', 'city', 'price_per_night']
+        fields = ['name', 'country', 'state', 'city', 'price_per_night', 'images']
 
 
 class ImageSerializer(serializers.ModelSerializer):
