@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -88,6 +89,15 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'SoftwareCheetahsBackEnd.wsgi.application'
+ASGI_APPLICATION = 'SoftwareCheetahsBackEnd.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database
