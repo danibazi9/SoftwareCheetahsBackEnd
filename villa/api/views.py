@@ -26,6 +26,13 @@ def get_all_villas(request):
     data = json.loads(json.dumps(serializer.data))
 
     for x in data:
+        owner = Account.objects.get(user_id=x['owner'])
+        x['owner'] = owner.__str__()
+        x['owner_image'] = None
+
+        if owner.image:
+            x['owner_image'] = owner.image.url
+
         facilities_list = []
 
         for facility_id in x['facilities']:
