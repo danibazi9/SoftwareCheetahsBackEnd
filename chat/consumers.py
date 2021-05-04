@@ -5,7 +5,7 @@ from channels.db import database_sync_to_async
 
 from .models import Message
 from account.models import Account
-from .serializer import MessageSerializer
+from .api.serializer import MessageSerializer
 import jwt
 
 

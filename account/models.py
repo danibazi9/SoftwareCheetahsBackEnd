@@ -26,8 +26,7 @@ class MyAccountManager(BaseUserManager):
             email=self.normalize_email(email),
         )
 
-        user.username = self.normalize_email(email)
-
+        #user.username = email
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -71,7 +70,7 @@ class Account(AbstractBaseUser):
     bio = models.TextField(blank=True, null=True)
 
     # auto-generate fields
-    username = models.CharField(verbose_name='username', max_length=30, unique=True)
+    #username = models.CharField(verbose_name='username', max_length=30, unique=True)
     date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
     is_admin = models.BooleanField(default=False)
