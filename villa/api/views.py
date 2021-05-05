@@ -211,6 +211,10 @@ class UserVilla(APIView):
         if 'number_of_showers' in data:
             villa.number_of_showers = int(data['number_of_showers'])
 
+        default_image = images_to_add[0]
+        default_image.default = True
+        default_image.save()
+
         for image in images_to_add:
             villa.images.add(image)
 
