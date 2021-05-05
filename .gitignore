@@ -104,6 +104,8 @@ ENV/
 
 .DS_Store
 media/
+media-cdn/
+Procfile
 *.sqlite3
 *.pyc
 *.db
