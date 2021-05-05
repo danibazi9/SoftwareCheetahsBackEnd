@@ -30,6 +30,14 @@ class Document(models.Model):
         return f"Document ID: {self.document_id}"
 
 
+class Rule(models.Model):
+    rule_id = models.AutoField(primary_key=True)
+    text = models.TextField()
+
+    def __str__(self):
+        return self.text
+
+
 class Villa(models.Model):
     villa_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=40)
