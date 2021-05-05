@@ -140,6 +140,7 @@ class UserVilla(APIView):
         if serializer.is_valid():
             images_to_add = []
             documents_to_add = []
+            rules_to_add = []
             facilities_list = []
 
             if 'image_id_list' in data:
@@ -170,6 +171,17 @@ class UserVilla(APIView):
             else:
                 return Response(f"Facilities_list: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
 
+            if 'rule_id_list' in data:
+                list_of_rule_ids = data['rule_id_list']
+                if len(list_of_rule_ids) > 0:
+                    for id in list_of_rule_ids:
+                        try:
+                            rule_to_add = Rule.objects.get(rule_id=id)
+                            rules_to_add.append(rule_to_add)
+                        except Rule.DoesNotExist:
+                            return Response(f"Rule with rule_id {id} NOT FOUND!",
+                                            status=status.HTTP_404_NOT_FOUND)
+
             villa = serializer.save()
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -197,6 +209,9 @@ class UserVilla(APIView):
 
         for document in documents_to_add:
             villa.documents.add(document)
+
+        for rule in rules_to_add:
+            villa.rules.add(rule)
 
         for facility in facilities_list:
             villa.facilities.add(facility)

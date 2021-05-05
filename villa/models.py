@@ -73,6 +73,7 @@ class Villa(models.Model):
     number_of_double_beds = models.IntegerField(default=1)
     number_of_showers = models.IntegerField(default=1)
     documents = models.ManyToManyField(Document, blank=True)
+    rules = models.ManyToManyField(Rule, blank=True)
     visible = models.BooleanField(default=True)
 
     def __str__(self):
