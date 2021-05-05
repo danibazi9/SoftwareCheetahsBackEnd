@@ -231,9 +231,9 @@ class UserVilla(APIView):
 @permission_classes((IsAuthenticated,))
 def get_fixed_rules(request):
     fixed_rules = [
-        'No smoking',
-        'No pets',
-        'No parties or events'
+        '3 days ahead of schedule nothing will be returned.',
+        '7 days ahead of schedule 30 % of price will be returned.',
+        'More than 7 days ahead of schedule 100 % of price will be returned.'
     ]
 
     data = json.loads(json.dumps(fixed_rules))
@@ -246,6 +246,9 @@ def get_special_rules(request):
     special_rules = [
         'Not suitable for children',
         'Not suitable for infants',
+        'No smoking',
+        'No pets',
+        'No parties or events'
     ]
 
     for special_rule in special_rules:
