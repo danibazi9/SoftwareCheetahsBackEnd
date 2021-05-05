@@ -1,13 +1,10 @@
-import json
+from django.test import TestCase
+from channels.testing import HttpCommunicator
+from chat.consumers import ChatConsumer
 
-from django.test import TestCase, Client
-
-from django.urls import reverse
-from rest_framework import status
-from rest_framework.authtoken.models import Token
-
-from account.models import Account
-
-# initialize the APIClient app
-client = Client()
- 
+class MyTests(TestCase):
+    async def test_my_consumer(self):
+        communicator = HttpCommunicator(ChatConsumer, "GET", "/test/")
+        response = await communicator.get_response()
+        self.assertEqual(response["body"], b"test response")
+        self.assertEqual(response["status"], 200)
