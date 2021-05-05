@@ -24,7 +24,8 @@ urlpatterns = [
     path('api/account/', include('account.api.urls', 'account_api')),
     path('api/villa/', include('villa.api.urls', 'villa_api')),
 ]
-
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_URL)
 # might make an error when we False debug in deploying
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+#if settings.DEBUG:
+#    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

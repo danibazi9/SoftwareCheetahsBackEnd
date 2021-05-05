@@ -234,6 +234,8 @@ class UserVilla(APIView):
         return Response(f"Villa with villa_id {villa.villa_id} created successfully!",
                         status=status.HTTP_201_CREATED)
 
+
+@permission_classes((IsAuthenticated,))
 @api_view(['GET', ])
 def search(request):
     query = Q()
@@ -244,10 +246,20 @@ def search(request):
     if 'city' in data.keys():
         query = query & Q(city=data['city'])    
 
+    if 'state' in data.keys():
+        query = query & Q(state=data['state'])    
+
     villas = Villa.objects.filter(query)
-    serializer = VillaSerializer(data=villas, many=True)
+    serializer = VillaSearchSerializer(data=villas, many=True)
     serializer.is_valid()
-    return Response({"message":'search successfully' , "data" : serializer.data}, status=status.HTTP_200_OK)
+    len_data = len(serializer.data)
+    if int(data['number_of_villa']) < len_data:
+        start = (int(data['page']) - 1) * int(data['number_of_villa'])
+        end = min(int(data['page']) * int(data['number_of_villa']) , len_data)
+        return Response({"message":'search successfully' , "data" : serializer.data[start:end]}, status=status.HTTP_200_OK)
+    else:
+        return Response({"message":'search successfully' , "data" : serializer.data}, status=status.HTTP_200_OK)
+
 
 @api_view(['GET', ])
 def show_villa_calendar(request):
