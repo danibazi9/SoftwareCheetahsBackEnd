@@ -210,3 +210,17 @@ class UserVilla(APIView):
 
         return Response(f"Villa with villa_id {villa.villa_id} created successfully!",
                         status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def get_fixed_rules(request):
+    fixed_rules = [
+        'No smoking',
+        'No pets',
+        'No parties or events'
+    ]
+
+    data = json.loads(json.dumps(fixed_rules))
+    return Response(data, status=status.HTTP_200_OK)
+
