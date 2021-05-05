@@ -12,6 +12,7 @@ import jwt
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
+        print('room_name',self.room_name)
         self.room_group_name = 'chat_%s' % self.room_name
 
         # Join room group
@@ -31,6 +32,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     # Receive message from WebSocket
     async def receive(self, text_data):
+        print(text_data)
         text_data_json = json.loads(text_data)
         text_data_json['type'] = 'chat_message'
         decodedPayload = jwt.decode(text_data_json['token'],None,None)
@@ -53,6 +55,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         print(event)
         # Send message to WebSocket
         await self.send(text_data=json.dumps(event))
+
+        
     @database_sync_to_async
     def create_message(self , event):
         print(event)
