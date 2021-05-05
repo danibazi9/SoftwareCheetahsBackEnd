@@ -108,6 +108,13 @@ class UserVilla(APIView):
             serializer = VillaSerializer(villa)
             data = json.loads(json.dumps(serializer.data))
 
+            owner = Account.objects.get(user_id=data['owner'])
+            data['owner'] = owner.__str__()
+            data['owner_image'] = None
+
+            if owner.image:
+                data['owner_image'] = owner.image.url
+
             visible = self.request.query_params.get('visible', None)
             if visible is not None:
                 if visible == 'true':
