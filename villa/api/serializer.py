@@ -13,7 +13,7 @@ class VillaSearchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Villa
-        fields = ['name', 'country', 'state', 'city', 'price_per_night', 'default_image_url']
+        fields = ['villa_id', 'name', 'country', 'state', 'city', 'price_per_night', 'default_image_url']
 
     def get_default_image(self, villa):
         images = villa.images
