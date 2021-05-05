@@ -230,6 +230,7 @@ class UserVilla(APIView):
         return Response(f"Villa with villa_id {villa.villa_id} created successfully!",
                         status=status.HTTP_201_CREATED)
 
+
 @api_view(['GET', ])
 def search(request):
     query = Q()
@@ -244,6 +245,7 @@ def search(request):
     serializer = VillaSerializer(data=villas, many=True)
     serializer.is_valid()
     return Response({"message":'search successfully' , "data" : serializer.data}, status=status.HTTP_200_OK)
+
 
 @api_view(['GET', ])
 def show_villa_calendar(request):
