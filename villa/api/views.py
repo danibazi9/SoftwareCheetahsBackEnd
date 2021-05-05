@@ -224,3 +224,18 @@ def get_fixed_rules(request):
     data = json.loads(json.dumps(fixed_rules))
     return Response(data, status=status.HTTP_200_OK)
 
+
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def get_special_rules(request):
+    special_rules = [
+        'Not suitable for children',
+        'Not suitable for infants',
+    ]
+
+    for special_rule in special_rules:
+        Rule.objects.get_or_create(text=special_rule)
+
+    all_special_rules = Rule.objects.all()
+    serializer = RuleSerializer(all_special_rules, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)

@@ -32,7 +32,7 @@ class Document(models.Model):
 
 class Rule(models.Model):
     rule_id = models.AutoField(primary_key=True)
-    text = models.TextField()
+    text = models.TextField(unique=True)
 
     def __str__(self):
         return self.text
