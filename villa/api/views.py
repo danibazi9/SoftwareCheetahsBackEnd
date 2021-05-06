@@ -1,4 +1,5 @@
 import base64
+import datetime
 import json
 
 from django.core.files.base import ContentFile
@@ -164,22 +165,23 @@ class UserVilla(APIView):
             if 'image_id_list' in data:
                 list_of_image_ids = data['image_id_list']
                 if len(list_of_image_ids) > 0:
-                    for id in list_of_image_ids:
+                    for image_id in list_of_image_ids:
                         try:
-                            image_to_add = Image.objects.get(image_id=id)
+                            image_to_add = Image.objects.get(image_id=image_id)
                             images_to_add.append(image_to_add)
                         except Image.DoesNotExist:
-                            return Response(f"Image with image_id {id} NOT FOUND!", status=status.HTTP_404_NOT_FOUND)
+                            return Response(f"Image with image_id {image_id} NOT FOUND!",
+                                            status=status.HTTP_404_NOT_FOUND)
 
             if 'doc_id_list' in data:
                 list_of_doc_ids = data['doc_id_list']
                 if len(list_of_doc_ids) > 0:
-                    for id in list_of_doc_ids:
+                    for doc_id in list_of_doc_ids:
                         try:
-                            doc_to_add = Document.objects.get(document_id=id)
+                            doc_to_add = Document.objects.get(document_id=doc_id)
                             documents_to_add.append(doc_to_add)
                         except Document.DoesNotExist:
-                            return Response(f"Document with document_id {id} NOT FOUND!",
+                            return Response(f"Document with document_id {doc_id} NOT FOUND!",
                                             status=status.HTTP_404_NOT_FOUND)
 
             if 'facilities_list' in data:
@@ -224,15 +226,11 @@ class UserVilla(APIView):
         for facility in facilities_list:
             villa.facilities.add(facility)
 
-        # if 'filename' in request.data and 'image' in request.data:
-        #     filename = request.data['filename']
-        #     file = ContentFile(base64.b64decode(request.data['image']), name=filename)
-        #     account.image = file
-
         villa.save()
 
         return Response(f"Villa with villa_id {villa.villa_id} created successfully!",
                         status=status.HTTP_201_CREATED)
+
 
 @api_view(['GET', ])
 def search(request):
@@ -247,16 +245,17 @@ def search(request):
     villas = Villa.objects.filter(query)
     serializer = VillaSerializer(data=villas, many=True)
     serializer.is_valid()
-    return Response({"message":'search successfully' , "data" : serializer.data}, status=status.HTTP_200_OK)
+    return Response({"message": 'search successfully', "data": serializer.data}, status=status.HTTP_200_OK)
+
 
 @api_view(['GET', ])
 def show_villa_calendar(request):
     try:
         villa = Villa.objects.get(villa_id=request.GET['villa_id'])
-    except:
-        return Response({'message':'villa does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    except Villa.DoesNotExist:
+        return Response({'message': 'villa does not exist'}, status=status.HTTP_404_NOT_FOUND)
     dates = Calendar.objects.filter(villa=villa)
-    serializer = ShowVillaCalendarSerializer(data=dates, many=True)
+    serializer = CalendarSerializer(data=dates, many=True)
     serializer.is_valid()
     data = serializer.data
-    return Response({'message':'show villa calendar successfully', 'dates':data}, status=status.HTTP_200_OK)
+    return Response({'message': 'show villa calendar successfully', 'dates': data}, status=status.HTTP_200_OK)

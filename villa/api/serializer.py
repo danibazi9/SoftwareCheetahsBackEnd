@@ -22,8 +22,9 @@ class DocumentSerializer(serializers.ModelSerializer):
         model = Document
         fields = '__all__'
 
-class ShowVillaCalendarSerializer(serializers.ModelSerializer):
+
+class CalendarSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Calendar
-        fields = ['villa', 'start_date','end_date', 'closed']
+        fields = '__all__'
