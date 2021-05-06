@@ -259,3 +259,39 @@ def show_villa_calendar(request):
     serializer.is_valid()
     data = serializer.data
     return Response({'message': 'show villa calendar successfully', 'dates': data}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST', ])
+@permission_classes((IsAuthenticated,))
+def register_villa(request):
+    data = json.loads(json.dumps(request.data))
+    data['customer'] = request.user.user_id
+
+    start_date = datetime.datetime.strptime(data['start_date'], '%Y-%m-%d')
+    end_date = datetime.datetime.strptime(data['end_date'], '%Y-%m-%d')
+
+    if start_date.date() > end_date.date():
+        return Response(f"ERROR: the start_date can't be larger than end_date!", status=status.HTTP_400_BAD_REQUEST)
+
+    if start_date.date() < datetime.date.today():
+        return Response(f"ERROR: the start_date can't be for the past!", status=status.HTTP_400_BAD_REQUEST)
+
+    if end_date.date() < datetime.date.today():
+        return Response(f"ERROR: the end_date can't be for the past!", status=status.HTTP_400_BAD_REQUEST)
+
+    overlapped_calendars = Calendar.objects.filter(
+                                                   Q(start_date__gte=start_date.date(), start_date__lt=end_date.date())
+                                                   | Q(start_date__lte=start_date.date(), end_date__gte=end_date.date())
+                                                   | Q(end_date__gt=start_date.date(), end_date__lte=end_date.date())
+                                                   )
+    if len(overlapped_calendars) > 0:
+        return Response(f"ERROR: This period has overlapped with other registration!",
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = CalendarSerializer(data=data)
+    if serializer.is_valid():
+        villa = serializer.save()
+        return Response(f"Villa with villa_id {villa.villa_id} registered successfully!",
+                        status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
