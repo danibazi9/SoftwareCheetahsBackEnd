@@ -314,3 +314,34 @@ class GetFixedRulesTest(TestCase):
             HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class GetSpecialRulesTest(TestCase):
+    """ Test module for get special rules in database """
+
+    def setUp(self):
+        new_user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=new_user)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+
+    def test_valid_get_special_rules(self):
+        response = client.get(
+            reverse('villa:get_special_rules'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_special_rules_unauthorized(self):
+        response = client.get(
+            reverse('villa:get_special_rules'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
