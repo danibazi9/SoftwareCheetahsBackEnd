@@ -16,7 +16,9 @@ from rest_framework.authtoken.models import Token
 import random
 from rest_framework import status
 from django.db.models import Q
+import base64
 
+from SoftwareCheetahsBackEnd import settings
 
 @api_view(['POST'])
 def registration_view(request):
@@ -73,25 +75,20 @@ def account_properties_view(request):
     except Account.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    if request.method == 'GET':
-        serializer = AccountPropertiesSerializer(account)
-        return Response(serializer.data)
+    serializer = AccountPropertiesSerializer(account)
+    return Response(serializer.data)
 
 
 @api_view(('GET',))
 def all_accounts_view(request):
-    query = Q()
-    if "search" in request.GET:
-        query = query | Q(email__contains=request.GET["search"][0])
-        query = query | Q(first_name__contains=request.GET["search"][0])
-        query = query | Q(role__contains=request.GET["search"][0])   
-
-    all_accounts = Account.objects.filter(query)
-
-
-    if request.method == 'GET':
-        serializer = AccountPropertiesSerializer(all_accounts, many=True)
-        return Response(serializer.data)
+    all_accounts = Account.objects.all()
+    result = []
+    search = request.GET["search"]
+    for a in all_accounts:
+        if search in a.email or search in a.first_name or search in a.last_name:
+            result.append(a)
+    serializer = AccountPropertiesSerializer(result, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TokenObtainView(ObtainAuthToken):
@@ -121,6 +118,35 @@ class LogoutView(APIView):
 
 
 @api_view(['POST', ])
+def update_account_image(request):
+    account = request.user
+    data = request.data
+    #data = json.loads(request.body)
+    img = data['base64']
+    format, imgstr = img.split(';base64,') 
+    if img == None:
+        account.image = None
+    else:
+        image_name = str(account.user_id) + ".png"
+
+        #account.image = ContentFile(base64.b64decode(img+"=="), image_name)
+        file = ContentFile(base64.b64decode(imgstr), name=image_name)
+        account.image = file
+    account.save()
+    return Response({"message" : "profile image edit successfully", 'base64_url':account.image.url}, status=status.HTTP_205_RESET_CONTENT)
+
+@api_view(["GET", ])
+def show_account_image(request):
+    account = request.user
+    print(account.image)
+    if str(account.image.url) == '':
+        image_url = None
+    else:
+        image_url = str(account.image.url)
+    return Response({"message" : "profile image send successfully", "base64_url" : image_url}, status=status.HTTP_200_OK)
+
+  
+@api_view(['POST', ])
 @permission_classes((IsAuthenticated,))
 def update_account_view(request):
     account = request.user
@@ -141,9 +167,6 @@ def update_account_view(request):
         
     if 'phone_number' in data:
         account.phone_number = data['phone_number']
-
-    if 'gender' in data:
-        gender = data['gender']
 
     if 'gender' in data:
         gender = data['gender']
@@ -168,6 +191,30 @@ def update_account_view(request):
     data = json.loads(json.dumps(my_serializer.data))
 
     return Response(data, status=status.HTTP_205_RESET_CONTENT)
+
+
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def check_document_existence(request):
+    documents = Document.objects.filter(user=request.user)
+    if len(documents) > 0:
+        return Response('Document found successfully!', status=status.HTTP_200_OK)
+    else:
+        return Response('No document exist!', status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST', ])
+@permission_classes((IsAuthenticated,))
+def upload_document(request):
+    data = request.data
+    data['user'] = request.user.user_id
+
+    serializer = DocumentSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from account.models import Account
+from account.models import *
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -33,3 +33,10 @@ class AccountPropertiesSerializer(serializers.ModelSerializer):
         model = Account
         fields = ['user_id', 'first_name', 'last_name', 'email', 'phone_number',
                   'gender', 'national_code', 'image', 'role', 'bio','birthday']
+
+
+class DocumentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Document
+        fields = '__all__'

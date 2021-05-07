@@ -64,11 +64,11 @@ class Account(AbstractBaseUser):
         ('Male', 'Male'),
         ('Female', 'Female'),
     ]
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
 
     birthday = models.DateField(null=True, blank=True)
-    image = models.ImageField(upload_to='users/images/', blank=True)
-    bio = models.TextField(blank=True)
+    image = models.ImageField(upload_to='users/images/', blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
 
     # auto-generate fields
     username = models.CharField(verbose_name='username', max_length=30, unique=True)
@@ -100,3 +100,12 @@ class Account(AbstractBaseUser):
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
+
+
+class Document(models.Model):
+    document_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(Account, related_name='documents', on_delete=models.CASCADE)
+    file = models.FileField(upload_to='users/documents/')
+
+    def __str__(self):
+        return f"Document ID: {self.document_id}, Owner: {self.user.first_name} {self.user.last_name}"

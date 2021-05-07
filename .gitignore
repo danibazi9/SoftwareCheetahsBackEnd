@@ -3,7 +3,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.sqlite3
+
 # C extensions
 *.so
 
@@ -19,6 +19,7 @@ eggs/
 lib/
 lib64/
 parts/
+live-static/
 sdist/
 var/
 wheels/
@@ -102,7 +103,6 @@ ENV/
 .mypy_cache/
 
 .DS_Store
-*.sqlite3
 media/
 *.pyc
 *.db
