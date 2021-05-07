@@ -111,10 +111,10 @@ DATABASES = {
 }
 
 # cronjobs
-CRONJOBS = [
-    ('*/1 * * * *', 'tasks.remove_waste_images')
-    # ('*/60 0 * * *', 'tasks.remove_waste_images')
-]
+# CRONJOBS = [
+#     ('*/1 * * * *', 'tasks.remove_waste_images')
+#     # ('*/60 0 * * *', 'tasks.remove_waste_images')
+# ]
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
