@@ -1,6 +1,7 @@
 import websocket
 import time
 import json
+import _thread
 
 def on_message(ws, message):
     print ('message : ', message)
@@ -20,7 +21,7 @@ def on_open(ws):
         for i in range(30000):
             # Sending message with 1 second intervall
             time.sleep(1)
-            ws.send(json.dumps({'message': "Hello %d" % i}))
+            ws.send('message': "Hello %d" % i)
         time.sleep(1)
         ws.close()
         print ("thread terminating...")
