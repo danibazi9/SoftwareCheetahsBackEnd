@@ -7,10 +7,11 @@ import datetime
 from account.models import Account
 
 @api_view(['POST'])
-def show_Message(request):
+def show_message(request):
     user = request.user
     contact = Account.objects.get(uset_id=request.GET['contact'])
     message = Message.objects.filter(account1=user, account2=contact)
+    
     datalist = []
     for i in range(len(message)):
         data = {
@@ -20,6 +21,7 @@ def show_Message(request):
             'text': message[i].text,
             'time': message[i].time.ctime(),
         }
+        
         if message[i].parentMessage:
             # if message[i].id == None:
             data['replyTo'] = message[i].parentMessage.id
