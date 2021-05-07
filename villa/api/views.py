@@ -1,4 +1,5 @@
 import base64
+import datetime
 import json
 
 from django.core.files.base import ContentFile
@@ -16,12 +17,23 @@ from villa.models import *
 @api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
 def get_all_villas(request):
-    all_villas = Villa.objects.filter(owner=request.user, visible=True)
+    all_villas = Villa.objects.filter(visible=True)
+
+    my_flag = request.query_params.get('me', None)
+    if my_flag is not None:
+        all_villas = Villa.objects.filter(owner=request.user, visible=True)
 
     serializer = VillaSerializer(all_villas, many=True)
     data = json.loads(json.dumps(serializer.data))
 
     for x in data:
+        owner = Account.objects.get(user_id=x['owner'])
+        x['owner'] = owner.__str__()
+        x['owner_image'] = None
+
+        if owner.image:
+            x['owner_image'] = owner.image.url
+
         facilities_list = []
 
         for facility_id in x['facilities']:
@@ -97,6 +109,13 @@ class UserVilla(APIView):
             serializer = VillaSerializer(villa)
             data = json.loads(json.dumps(serializer.data))
 
+            owner = Account.objects.get(user_id=data['owner'])
+            data['owner'] = owner.__str__()
+            data['owner_image'] = None
+
+            if owner.image:
+                data['owner_image'] = owner.image.url
+
             visible = self.request.query_params.get('visible', None)
             if visible is not None:
                 if visible == 'true':
@@ -146,22 +165,23 @@ class UserVilla(APIView):
             if 'image_id_list' in data:
                 list_of_image_ids = data['image_id_list']
                 if len(list_of_image_ids) > 0:
-                    for id in list_of_image_ids:
+                    for image_id in list_of_image_ids:
                         try:
-                            image_to_add = Image.objects.get(image_id=id)
+                            image_to_add = Image.objects.get(image_id=image_id)
                             images_to_add.append(image_to_add)
                         except Image.DoesNotExist:
-                            return Response(f"Image with image_id {id} NOT FOUND!", status=status.HTTP_404_NOT_FOUND)
+                            return Response(f"Image with image_id {image_id} NOT FOUND!",
+                                            status=status.HTTP_404_NOT_FOUND)
 
             if 'doc_id_list' in data:
                 list_of_doc_ids = data['doc_id_list']
                 if len(list_of_doc_ids) > 0:
-                    for id in list_of_doc_ids:
+                    for doc_id in list_of_doc_ids:
                         try:
-                            doc_to_add = Document.objects.get(document_id=id)
+                            doc_to_add = Document.objects.get(document_id=doc_id)
                             documents_to_add.append(doc_to_add)
                         except Document.DoesNotExist:
-                            return Response(f"Document with document_id {id} NOT FOUND!",
+                            return Response(f"Document with document_id {doc_id} NOT FOUND!",
                                             status=status.HTTP_404_NOT_FOUND)
 
             if 'facilities_list' in data:
@@ -193,6 +213,10 @@ class UserVilla(APIView):
         if 'number_of_showers' in data:
             villa.number_of_showers = int(data['number_of_showers'])
 
+        default_image = images_to_add[0]
+        default_image.default = True
+        default_image.save()
+
         for image in images_to_add:
             villa.images.add(image)
 
@@ -202,15 +226,11 @@ class UserVilla(APIView):
         for facility in facilities_list:
             villa.facilities.add(facility)
 
-        # if 'filename' in request.data and 'image' in request.data:
-        #     filename = request.data['filename']
-        #     file = ContentFile(base64.b64decode(request.data['image']), name=filename)
-        #     account.image = file
-
         villa.save()
 
         return Response(f"Villa with villa_id {villa.villa_id} created successfully!",
                         status=status.HTTP_201_CREATED)
+
 
 @permission_classes((IsAuthenticated,))
 @api_view(['GET', ])
@@ -237,14 +257,51 @@ def search(request):
     else:
         return Response({"message":'search successfully' , "data" : serializer.data}, status=status.HTTP_200_OK)
 
+
 @api_view(['GET', ])
 def show_villa_calendar(request):
     try:
         villa = Villa.objects.get(villa_id=request.GET['villa_id'])
-    except:
-        return Response({'message':'villa does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    except Villa.DoesNotExist:
+        return Response({'message': 'villa does not exist'}, status=status.HTTP_404_NOT_FOUND)
     dates = Calendar.objects.filter(villa=villa)
-    serializer = ShowVillaCalendarSerializer(data=dates, many=True)
+    serializer = CalendarSerializer(data=dates, many=True)
     serializer.is_valid()
     data = serializer.data
-    return Response({'message':'show villa calendar successfully', 'dates':data}, status=status.HTTP_200_OK)
+    return Response({'message': 'show villa calendar successfully', 'dates': data}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST', ])
+@permission_classes((IsAuthenticated,))
+def register_villa(request):
+    data = json.loads(json.dumps(request.data))
+    data['customer'] = request.user.user_id
+
+    start_date = datetime.datetime.strptime(data['start_date'], '%Y-%m-%d')
+    end_date = datetime.datetime.strptime(data['end_date'], '%Y-%m-%d')
+
+    if start_date.date() > end_date.date():
+        return Response(f"ERROR: the start_date can't be larger than end_date!", status=status.HTTP_400_BAD_REQUEST)
+
+    if start_date.date() < datetime.date.today():
+        return Response(f"ERROR: the start_date can't be for the past!", status=status.HTTP_400_BAD_REQUEST)
+
+    if end_date.date() < datetime.date.today():
+        return Response(f"ERROR: the end_date can't be for the past!", status=status.HTTP_400_BAD_REQUEST)
+
+    overlapped_calendars = Calendar.objects.filter(
+                                                   Q(start_date__gte=start_date.date(), start_date__lt=end_date.date())
+                                                   | Q(start_date__lte=start_date.date(), end_date__gte=end_date.date())
+                                                   | Q(end_date__gt=start_date.date(), end_date__lte=end_date.date())
+                                                   )
+    if len(overlapped_calendars) > 0:
+        return Response(f"ERROR: This period has overlapped with other registration!",
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = CalendarSerializer(data=data)
+    if serializer.is_valid():
+        villa = serializer.save()
+        return Response(f"Villa with villa_id {villa.villa_id} registered successfully!",
+                        status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

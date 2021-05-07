@@ -56,4 +56,13 @@ class FacilityAdmin(admin.ModelAdmin):
 
 admin.site.register(Facility, FacilityAdmin)
 
-admin.site.register(Calendar)
+
+class CalendarAdmin(admin.ModelAdmin):
+    list_display = ['calendar_id', 'customer', 'villa', 'start_date', 'end_date', 'closed']
+    list_filter = ['villa']
+
+    class Meta:
+        model = Calendar
+
+
+admin.site.register(Calendar, CalendarAdmin)

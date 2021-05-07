@@ -21,8 +21,9 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
-    path('api/account/', include('account.api.urls', 'account_api')),
-    path('api/villa/', include('villa.api.urls', 'villa_api')),
+    path('api/account/', include('account.api.urls')),
+    path('api/villa/', include('villa.api.urls')),
+    path('api/chat/', include('chat.api.urls')),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_URL)

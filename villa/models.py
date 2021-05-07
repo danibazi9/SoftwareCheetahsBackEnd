@@ -70,6 +70,8 @@ class Villa(models.Model):
     def __str__(self):
         return self.name + ", Owner: " + self.owner.first_name + " " + self.owner.last_name
 
+<<<<<<< HEAD
+
 class Calendar(models.Model):
     calendar_id = models.AutoField(primary_key=True)
     customer = models.ForeignKey(Account, on_delete=models.CASCADE, null=True)
@@ -77,3 +79,6 @@ class Calendar(models.Model):
     start_date = models.DateField()
     end_date = models.DateField() 
     closed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.villa.name + ", Customer: " + self.customer.__str__()
