@@ -16,7 +16,7 @@ class Message(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
     owner = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True)
     text = models.TextField()
-    parentMessage = models.ForeignKey("self", null=True, on_delete=models.SET_NULL)
+    parentMessage = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL)
     time = models.DateTimeField(db_index=True)
 
     def __str__(self):
