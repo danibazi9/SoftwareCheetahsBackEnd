@@ -5,6 +5,8 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from django.conf import settings
+import tempfile
 
 from account.models import Account
 
@@ -186,6 +188,8 @@ class EmailTest(TestCase):
         
 class ProfilePictureTest(TestCase):
     def setUp(self):
+        settings.MEDIA_ROOT = tempfile.mkdtemp()
+        
         account = Account.objects.create(
             first_name='Danial',
             last_name='Bazmandeh',

@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 
 from villa.api.serializer import *
 from villa.models import *
@@ -15,12 +16,23 @@ from villa.models import *
 @api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
 def get_all_villas(request):
-    all_villas = Villa.objects.filter(owner=request.user, visible=True)
+    all_villas = Villa.objects.filter(visible=True)
+
+    my_flag = request.query_params.get('me', None)
+    if my_flag is not None:
+        all_villas = Villa.objects.filter(owner=request.user, visible=True)
 
     serializer = VillaSerializer(all_villas, many=True)
     data = json.loads(json.dumps(serializer.data))
 
     for x in data:
+        owner = Account.objects.get(user_id=x['owner'])
+        x['owner'] = owner.__str__()
+        x['owner_image'] = None
+
+        if owner.image:
+            x['owner_image'] = owner.image.url
+
         facilities_list = []
 
         for facility_id in x['facilities']:
@@ -95,6 +107,13 @@ class UserVilla(APIView):
 
             serializer = VillaSerializer(villa)
             data = json.loads(json.dumps(serializer.data))
+
+            owner = Account.objects.get(user_id=data['owner'])
+            data['owner'] = owner.__str__()
+            data['owner_image'] = None
+
+            if owner.image:
+                data['owner_image'] = owner.image.url
 
             visible = self.request.query_params.get('visible', None)
             if visible is not None:
@@ -192,6 +211,10 @@ class UserVilla(APIView):
         if 'number_of_showers' in data:
             villa.number_of_showers = int(data['number_of_showers'])
 
+        default_image = images_to_add[0]
+        default_image.default = True
+        default_image.save()
+
         for image in images_to_add:
             villa.images.add(image)
 
@@ -210,3 +233,30 @@ class UserVilla(APIView):
 
         return Response(f"Villa with villa_id {villa.villa_id} created successfully!",
                         status=status.HTTP_201_CREATED)
+
+@api_view(['GET', ])
+def search(request):
+    query = Q()
+    data = request.GET
+    if 'country' in data.keys():
+        query = query & Q(country=data['country'])
+
+    if 'city' in data.keys():
+        query = query & Q(city=data['city'])    
+
+    villas = Villa.objects.filter(query)
+    serializer = VillaSerializer(data=villas, many=True)
+    serializer.is_valid()
+    return Response({"message":'search successfully' , "data" : serializer.data}, status=status.HTTP_200_OK)
+
+@api_view(['GET', ])
+def show_villa_calendar(request):
+    try:
+        villa = Villa.objects.get(villa_id=request.GET['villa_id'])
+    except:
+        return Response({'message':'villa does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    dates = Calendar.objects.filter(villa=villa)
+    serializer = ShowVillaCalendarSerializer(data=dates, many=True)
+    serializer.is_valid()
+    data = serializer.data
+    return Response({'message':'show villa calendar successfully', 'dates':data}, status=status.HTTP_200_OK)
