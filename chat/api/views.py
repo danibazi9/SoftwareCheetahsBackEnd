@@ -7,7 +7,7 @@ import datetime
 from account.models import Account
 
 @api_view(['POST'])
-def show_Message(request):
+def show_message(request):
     user = request.user
     contact = Account.objects.get(uset_id=request.GET['contact'])
     message = Message.objects.filter(account1=user, account2=contact)
