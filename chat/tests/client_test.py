@@ -21,7 +21,7 @@ def on_open(ws):
         for i in range(30000):
             # Sending message with 1 second intervall
             time.sleep(1)
-            ws.send('message': "Hello %d" % i)
+            ws.send("Hello %d" % i)
         time.sleep(1)
         ws.close()
         print ("thread terminating...")
