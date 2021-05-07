@@ -276,7 +276,7 @@ class AddVillaTest(TestCase):
         # )
         # self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_add__villa_unauthorized(self):
+    def test_add_villa_unauthorized(self):
         response = client.post(
             reverse('villa:villa_apis'),
             data=self.valid_villa,
