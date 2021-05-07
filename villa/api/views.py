@@ -252,10 +252,10 @@ def search(request):
     len_data = len(serializer.data)
     if int(data['number_of_villa']) < len_data:
         start = (int(data['page']) - 1) * int(data['number_of_villa'])
-        end = min(int(data['page']) * int(data['number_of_villa']) , len_data)
-        return Response({"message":'search successfully' , "data" : serializer.data[start:end]}, status=status.HTTP_200_OK)
+        end = min(int(data['page']) * int(data['number_of_villa']), len_data)
+        return Response({"message": 'search successfully', "data": serializer.data[start:end]}, status=status.HTTP_200_OK)
     else:
-        return Response({"message":'search successfully' , "data" : serializer.data}, status=status.HTTP_200_OK)
+        return Response({"message": 'search successfully', "data": serializer.data}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET', ])
