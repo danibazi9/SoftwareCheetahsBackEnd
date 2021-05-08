@@ -96,7 +96,6 @@ def upload_document(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'POST', ])
 @permission_classes((IsAuthenticated,))
 class UserVilla(APIView):
     def get(self, args):
@@ -148,6 +147,13 @@ class UserVilla(APIView):
                 document = Document.objects.get(document_id=document_id)
                 documents_list.append(document.file.url)
             data['documents'] = documents_list
+
+            rules_list = []
+
+            for rule_id in data['rules']:
+                rule = Rule.objects.get(rule_id=rule_id)
+                rules_list.append(rule.text)
+            data['rules'] = rules_list
 
             return Response(data, status=status.HTTP_200_OK)
         else:
@@ -299,10 +305,10 @@ def search(request):
     len_data = len(serializer.data)
     if int(data['number_of_villa']) < len_data:
         start = (int(data['page']) - 1) * int(data['number_of_villa'])
-        end = min(int(data['page']) * int(data['number_of_villa']) , len_data)
-        return Response({"message":'search successfully' , "data" : serializer.data[start:end]}, status=status.HTTP_200_OK)
+        end = min(int(data['page']) * int(data['number_of_villa']), len_data)
+        return Response({"message": 'search successfully', "data": serializer.data[start:end]}, status=status.HTTP_200_OK)
     else:
-        return Response({"message":'search successfully' , "data" : serializer.data}, status=status.HTTP_200_OK)
+        return Response({"message": 'search successfully', "data": serializer.data}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET', ])
