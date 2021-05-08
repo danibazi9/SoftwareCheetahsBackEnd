@@ -10,4 +10,7 @@ urlpatterns = [
     path('user/documents/', views.upload_document, name='upload_document'),
     path('fixed-rules/', views.get_fixed_rules, name='get_fixed_rules'),
     path('special-rules/', views.get_special_rules, name='get_special_rules'),
+    path('user/register/', views.register_villa, name='register_villa'),
+    path('search/', views.search, name='search'),
+    path('calendar/show/', views.show_villa_calendar,name='show_calendar')
 ]
