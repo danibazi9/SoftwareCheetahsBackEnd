@@ -286,7 +286,8 @@ def get_special_rules(request):
     serializer = RuleSerializer(all_special_rules, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-  
+
+@api_view(['GET', ])
 def search(request):
     query = Q()
     data = request.GET
