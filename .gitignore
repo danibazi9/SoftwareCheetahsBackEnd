@@ -19,6 +19,8 @@ eggs/
 lib/
 lib64/
 parts/
+media-cdn/
+static/
 live-static/
 media-cdn/
 media-root/

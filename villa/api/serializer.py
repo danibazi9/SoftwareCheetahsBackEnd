@@ -9,6 +9,13 @@ class VillaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class RuleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Rule
+        fields = '__all__'
+
+
 class ImageSerializer(serializers.ModelSerializer):
 
     class Meta:
