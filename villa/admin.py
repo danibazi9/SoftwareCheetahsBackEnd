@@ -66,3 +66,14 @@ class CalendarAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Calendar, CalendarAdmin)
+
+
+class RuleAdmin(admin.ModelAdmin):
+    list_display = ['rule_id', 'text']
+    list_filter = ['text']
+
+    class Meta:
+        model = Rule
+
+
+admin.site.register(Rule, RuleAdmin)
