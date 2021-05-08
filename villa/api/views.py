@@ -148,6 +148,13 @@ class UserVilla(APIView):
                 documents_list.append(document.file.url)
             data['documents'] = documents_list
 
+            rules_list = []
+
+            for rule_id in data['rules']:
+                rule = Rule.objects.get(rule_id=rule_id)
+                rules_list.append(rule.text)
+            data['rules'] = rules_list
+
             return Response(data, status=status.HTTP_200_OK)
         else:
             return Response("Villa_id: None, BAD REQUEST", status=status.HTTP_400_BAD_REQUEST)
@@ -279,7 +286,8 @@ def get_special_rules(request):
     serializer = RuleSerializer(all_special_rules, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-@api_view(['GET', ])  
+
+@api_view(['GET', ])
 def search(request):
     query = Q()
     data = request.GET

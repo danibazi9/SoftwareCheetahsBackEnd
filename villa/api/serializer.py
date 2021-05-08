@@ -8,6 +8,7 @@ class VillaSerializer(serializers.ModelSerializer):
         model = Villa
         fields = '__all__'
 
+
 class VillaSearchSerializer(serializers.ModelSerializer):
     default_image_url = serializers.SerializerMethodField('get_default_image')
 
