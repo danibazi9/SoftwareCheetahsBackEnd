@@ -444,3 +444,167 @@ class CalendarTest(TestCase):
             data={"villa_id":5}
         )
         self.assertEquals(responce.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class RegisterVillaTest(TestCase):
+    """ Test module for registering a villa by user """
+
+    def setUp(self):
+        self.new_user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+
+        self.new_villa = Villa.objects.create(
+            name='test',
+            type='Urban',
+            price_per_night=10,
+            country='Iran',
+            city='Tehran',
+            address='Iran Tehran',
+            latitude=100,
+            longitude=100,
+            area=1,
+            owner=self.new_user,
+            capacity=10,
+            max_capacity=16
+        )
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=self.new_user)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+
+        self.valid_register_villa = {
+            'villa': self.new_villa.villa_id,
+            'start_date': datetime.strftime(datetime.now() + timedelta(days=3), '%Y-%m-%d'),
+            'end_date': datetime.strftime(datetime.now() + timedelta(days=6), '%Y-%m-%d'),
+        }
+
+        self.invalid_register_villa = {
+            'villa': self.new_villa.villa_id,
+        }
+
+        self.invalid_register_villa2 = {
+            'villa': self.new_villa.villa_id,
+            'start_date': datetime.strftime(datetime.now() + timedelta(days=6), '%Y-%m-%d'),
+            'end_date': datetime.strftime(datetime.now() + timedelta(days=3), '%Y-%m-%d'),
+        }
+
+        self.invalid_register_villa3 = {
+            'villa': self.new_villa.villa_id,
+            'start_date': datetime.strftime(datetime.now() - timedelta(days=6), '%Y-%m-%d'),
+            'end_date': datetime.strftime(datetime.now() + timedelta(days=3), '%Y-%m-%d'),
+        }
+
+        self.invalid_register_villa4 = {
+            'villa': self.new_villa.villa_id,
+            'start_date': datetime.strftime(datetime.now() - timedelta(days=6), '%Y-%m-%d'),
+            'end_date': datetime.strftime(datetime.now() - timedelta(days=3), '%Y-%m-%d'),
+        }
+
+        self.invalid_register_villa5 = {
+            'villa': self.new_villa.villa_id,
+            'start_date': datetime.strftime(datetime.now() + timedelta(days=1), '%Y-%m-%d'),
+            'end_date': datetime.strftime(datetime.now() + timedelta(days=5), '%Y-%m-%d'),
+        }
+
+        self.invalid_register_villa6 = {
+            'villa': self.new_villa.villa_id,
+            'start_date': datetime.strftime(datetime.now() + timedelta(days=1), '%Y-%m-%d'),
+            'end_date': datetime.strftime(datetime.now() + timedelta(days=8), '%Y-%m-%d'),
+        }
+
+        self.invalid_register_villa7 = {
+            'villa': self.new_villa.villa_id,
+            'start_date': datetime.strftime(datetime.now() + timedelta(days=4), '%Y-%m-%d'),
+            'end_date': datetime.strftime(datetime.now() + timedelta(days=8), '%Y-%m-%d'),
+        }
+
+        self.invalid_register_villa8 = {
+            'villa': self.new_villa.villa_id,
+            'start_date': datetime.strftime(datetime.now() + timedelta(days=4), '%Y-%m-%d'),
+            'end_date': datetime.strftime(datetime.now() + timedelta(days=6), '%Y-%m-%d'),
+        }
+
+    def test_valid_register_villa(self):
+        response = client.post(
+            reverse('villa:register_villa'),
+            data=self.valid_register_villa,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_invalid_register_villa(self):
+        response = client.post(
+            reverse('villa:register_villa'),
+            data=self.invalid_register_villa,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = client.post(
+            reverse('villa:register_villa'),
+            data=self.invalid_register_villa2,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = client.post(
+            reverse('villa:register_villa'),
+            data=self.invalid_register_villa3,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = client.post(
+            reverse('villa:register_villa'),
+            data=self.invalid_register_villa4,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        Calendar.objects.create(
+            customer=self.new_user,
+            villa=self.new_villa,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=6)
+        )
+
+        response = client.post(
+            reverse('villa:register_villa'),
+            data=self.invalid_register_villa5,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = client.post(
+            reverse('villa:register_villa'),
+            data=self.invalid_register_villa6,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = client.post(
+            reverse('villa:register_villa'),
+            data=self.invalid_register_villa7,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = client.post(
+            reverse('villa:register_villa'),
+            data=self.invalid_register_villa8,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_register_villa_unauthorized(self):
+        response = client.post(
+            reverse('villa:register_villa'),
+            data=self.valid_register_villa,
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
