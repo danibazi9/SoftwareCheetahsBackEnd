@@ -96,6 +96,7 @@ def upload_document(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET', 'POST', ])
 @permission_classes((IsAuthenticated,))
 class UserVilla(APIView):
     def get(self, args):
