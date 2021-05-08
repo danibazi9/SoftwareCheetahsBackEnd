@@ -281,15 +281,77 @@ class AddVillaTest(TestCase):
         # )
         # self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_add__villa_unauthorized(self):
+    def test_add_villa_unauthorized(self):
         response = client.post(
             reverse('villa:villa_apis'),
             data=self.valid_villa,
             HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        
-        
+
+
+class GetFixedRulesTest(TestCase):
+    """ Test module for get the list of fixed rules in database """
+
+    def setUp(self):
+        new_user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=new_user)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+
+    def test_valid_get_fixed_rules(self):
+        response = client.get(
+            reverse('villa:get_fixed_rules'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_fixed_rules_unauthorized(self):
+        response = client.get(
+            reverse('villa:get_fixed_rules'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class GetSpecialRulesTest(TestCase):
+    """ Test module for get special rules in database """
+
+    def setUp(self):
+        new_user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=new_user)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+
+    def test_valid_get_special_rules(self):
+        response = client.get(
+            reverse('villa:get_special_rules'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_special_rules_unauthorized(self):
+        response = client.get(
+            reverse('villa:get_special_rules'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
 class VillaSearchTest(TestCase):
     def setUp(self):
         owner = Account.objects.create(
@@ -353,6 +415,7 @@ class VillaSearchTest(TestCase):
             )
             self.assertEquals(len(response.data['data']),result_count[test])
 
+            
 class CalendarTest(TestCase):
     def setUp(self):
         owner = Account.objects.create(
