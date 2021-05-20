@@ -4,7 +4,8 @@ import json
 import _thread
 
 def on_message(ws, message):
-    print ('message : ', message)
+    pass
+    #print ('message : ', message)
 
 def on_error(ws, error):
     print ("eroror:", error)
@@ -22,7 +23,8 @@ def on_open(ws):
         for i in range(30000):
             # Sending message with 1 second intervall
             time.sleep(1)
-            ws.send(json.dumps({'message': "Hello %d" % i, 'type':'chat.message', 'user':user}))
+            message = input("input your message : ")
+            ws.send(json.dumps({'message': message, 'type':'chat.message', 'user':user}))
         time.sleep(1)
         ws.close()
         print ("thread terminating...")

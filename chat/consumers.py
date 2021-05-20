@@ -38,7 +38,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         #text_data_json['user_id'] = decodedPayload['user_id']
         # print(decodedPayload)
         #data = {}
-        print(text_data_json['user'],text_data_json['message'])
+        print(text_data_json['user'],":",text_data_json['message'])
         data = text_data_json
         #if text_data_json['order_type'] == 'create_message':
             #data = await self.create_message(event=text_data_json)
