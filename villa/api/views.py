@@ -301,7 +301,26 @@ def search(request):
         query = query & Q(state=data['state'])    
 
     villas = Villa.objects.filter(query)
-    serializer = VillaSearchSerializer(data=villas, many=True)
+    print(villas)
+    if 'start_date' in data.keys() and 'end_date' in data.keys():
+        start_date = datetime.datetime.strptime(data['start_date'], '%Y-%m-%d')
+        end_date = datetime.datetime.strptime(data['end_date'], '%Y-%m-%d')
+        selected_villas = []
+        for v in villas:
+            query = Q(villa=v)
+            query = query & (
+                            Q(start_date__gte=start_date.date(), start_date__lt=end_date.date())
+                            | Q(start_date__lte=start_date.date(), end_date__gte=end_date.date())
+                            | Q(end_date__gt=start_date.date(), end_date__lte=end_date.date())
+                            )
+            no_overlapped_calendars = Calendar.objects.filter(query).count()
+            print(no_overlapped_calendars)
+            if no_overlapped_calendars == 0:
+                selected_villas.append(v)
+    else:
+        selected_villas = villas
+    print(selected_villas)
+    serializer = VillaSearchSerializer(data=selected_villas, many=True)
     serializer.is_valid()
     len_data = len(serializer.data)
     if int(data['number_of_villa']) < len_data:

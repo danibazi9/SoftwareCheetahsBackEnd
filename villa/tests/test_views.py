@@ -362,8 +362,21 @@ class VillaSearchTest(TestCase):
             gender='Male',
             password='123456'
         )
+        owner.username = owner.email
+        owner.save()
 
-        Villa.objects.create(
+        customer = Account.objects.create(
+            first_name='Sadegh',
+            last_name='Jafari',
+            email='sadeghjafari@gmail.com',
+            phone_number='+989152147501',
+            gender='Male',
+            password='123456'
+        )
+        customer.username = customer.email
+        customer.save()
+
+        v1 = Villa.objects.create(
             name='test1',
             type='Urban',
             price_per_night=10,
@@ -374,12 +387,10 @@ class VillaSearchTest(TestCase):
             longitude=100,
             area=1,
             owner=owner,
-            capacity=10,
-            max_capacity=10,
-            postal_code='1234567890'
+            capacity=10
         )
 
-        Villa.objects.create(
+        v2 = Villa.objects.create(
             name='test2',
             type='Urban',
             price_per_night=10,
@@ -390,30 +401,49 @@ class VillaSearchTest(TestCase):
             longitude=100,
             area=1,
             owner=owner,
-            capacity=10,
-            max_capacity=10,
-            postal_code='0123456789'
+            capacity=10
         )
 
-        Villa.objects.create(
-            name='test3',
-            type='Urban',
-            price_per_night=10,
-            country='Iran',
-            city='Esfahan',
-            address='Iran Esfahan',
-            latitude=100,
-            longitude=100,
-            area=1,
-            owner=owner,
-            capacity=10,
-            max_capacity=10,
-            postal_code='2345678901'
+        Calendar.objects.create(
+            customer=customer,
+            villa=v1,
+            start_date=datetime.now(),
+            end_date=datetime.now() + timedelta(days=1)
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v1,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5)
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v2,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5)
         )
 
     def test_search_villa(self):
-        datas = [{'country':'Iran'},{'city':'Esfahan'},{'country':'Iran','city':'Tehran'}]
-        result_count = [3,2,1]
+        datas = [{'country':'Iran', 'number_of_villa':2, 'page':1},
+                 {'city':'Esfahan', 'number_of_villa':2, 'page':1},
+                 {'country':'Iran','city':'Tehran', 'number_of_villa':2, 'page':1}]
+                 
+        result_count = [2,2,1]
+        for test in range(len(result_count)):
+            response = client.get(
+                reverse('villa:search'),
+                data = datas[test],
+            )
+            self.assertEquals(len(response.data['data']),result_count[test])
+
+    def test_searchVilla_withDate(self):
+        datas = [{'country':'Iran', 'number_of_villa':2, 'page':1},
+                 {'city':'Esfahan', 'number_of_villa':2, 'page':1},
+                 {'country':'Iran','city':'Tehran', 'number_of_villa':2, 'page':1}]
+                 
+        result_count = [2,2,1]
         for test in range(len(result_count)):
             response = client.get(
                 reverse('villa:search'),
