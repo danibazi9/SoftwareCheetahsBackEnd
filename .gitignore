@@ -19,7 +19,6 @@ eggs/
 lib/
 lib64/
 parts/
-media-cdn/
 static/
 live-static/
 media-cdn/
@@ -109,6 +108,8 @@ ENV/
 
 .DS_Store
 media/
+*.sqlite3
+*.db
 *.pyc
 *.pid
 
