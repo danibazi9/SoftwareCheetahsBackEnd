@@ -111,6 +111,7 @@ class UserVilla(APIView):
 
             owner = Account.objects.get(user_id=data['owner'])
             data['owner'] = owner.__str__()
+            data['phone_number'] = owner.phone_number
             data['owner_image'] = None
 
             if owner.image:
