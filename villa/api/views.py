@@ -3,6 +3,7 @@ import datetime
 import json
 
 from django.core.files.base import ContentFile
+from django.db.models.aggregates import Avg
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -380,3 +381,18 @@ def show_most_registered_villas(request):
         serializer = VillaSearchSerializer(villa)
         data.append(serializer.data)
     return Response({'message':'find most reserved successfully' ,'data':data},status=status.HTTP_200_OK)
+
+
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def show_most_rated_villas(request):
+    number_of_villa = int(request.GET['number_of_villa'])
+    most_rated = Calendar.objects.values('villa').order_by().annotate(Avg('rate')).order_by('rate__avg')[::-1][:number_of_villa]
+    data = []
+    for v in most_rated:
+        villa = Villa.objects.get(villa_id=v['villa'])
+        serializer = VillaSearchSerializer(villa)
+        d = serializer.data
+        d['rate__avg'] = v['rate__avg']
+        data.append(d)
+    return Response({'message':'find most rated successfully' ,'data':data},status=status.HTTP_200_OK)

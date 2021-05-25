@@ -13,5 +13,6 @@ urlpatterns = [
     path('user/register/', views.register_villa, name='register_villa'),
     path('search/',views.search,name='search'),
     path('calendar/show/', views.show_villa_calendar, name='show_calendar'),
-    path('most-registered/show', views.show_most_registered_villas, name='show_most_registered_villas')
+    path('most-registered/show', views.show_most_registered_villas, name='show_most_registered_villas'),
+    path('most-rated/show', views.show_most_rated_villas, name='show_most_rated_villas')
 ]
