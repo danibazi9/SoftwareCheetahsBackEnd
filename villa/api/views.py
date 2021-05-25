@@ -111,6 +111,7 @@ class UserVilla(APIView):
 
             owner = Account.objects.get(user_id=data['owner'])
             data['owner'] = owner.__str__()
+            data['phone_number'] = owner.phone_number
             data['owner_image'] = None
 
             if owner.image:
@@ -148,6 +149,13 @@ class UserVilla(APIView):
                 documents_list.append(document.file.url)
             data['documents'] = documents_list
 
+            rules_list = []
+
+            for rule_id in data['rules']:
+                rule = Rule.objects.get(rule_id=rule_id)
+                rules_list.append(rule.text)
+            data['rules'] = rules_list
+
             return Response(data, status=status.HTTP_200_OK)
         else:
             return Response("Villa_id: None, BAD REQUEST", status=status.HTTP_400_BAD_REQUEST)
@@ -160,6 +168,7 @@ class UserVilla(APIView):
         if serializer.is_valid():
             images_to_add = []
             documents_to_add = []
+            rules_to_add = []
             facilities_list = []
 
             if 'image_id_list' in data:
@@ -190,6 +199,17 @@ class UserVilla(APIView):
                     facilities_list.append(facility_obj)
             else:
                 return Response(f"Facilities_list: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
+            if 'rule_id_list' in data:
+                list_of_rule_ids = data['rule_id_list']
+                if len(list_of_rule_ids) > 0:
+                    for id in list_of_rule_ids:
+                        try:
+                            rule_to_add = Rule.objects.get(rule_id=id)
+                            rules_to_add.append(rule_to_add)
+                        except Rule.DoesNotExist:
+                            return Response(f"Rule with rule_id {id} NOT FOUND!",
+                                            status=status.HTTP_404_NOT_FOUND)
 
             villa = serializer.save()
         else:
@@ -223,6 +243,9 @@ class UserVilla(APIView):
         for document in documents_to_add:
             villa.documents.add(document)
 
+        for rule in rules_to_add:
+            villa.rules.add(rule)
+
         for facility in facilities_list:
             villa.facilities.add(facility)
 
@@ -230,6 +253,39 @@ class UserVilla(APIView):
 
         return Response(f"Villa with villa_id {villa.villa_id} created successfully!",
                         status=status.HTTP_201_CREATED)
+
+
+@permission_classes((IsAuthenticated,))
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def get_fixed_rules(request):
+    fixed_rules = [
+        '3 days ahead of schedule nothing will be returned.',
+        '7 days ahead of schedule 30 % of price will be returned.',
+        'More than 7 days ahead of schedule 100 % of price will be returned.'
+    ]
+
+    data = json.loads(json.dumps(fixed_rules))
+    return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def get_special_rules(request):
+    special_rules = [
+        'Not suitable for children',
+        'Not suitable for infants',
+        'No smoking',
+        'No pets',
+        'No parties or events'
+    ]
+
+    for special_rule in special_rules:
+        Rule.objects.get_or_create(text=special_rule)
+
+    all_special_rules = Rule.objects.all()
+    serializer = RuleSerializer(all_special_rules, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET', ])
@@ -242,10 +298,19 @@ def search(request):
     if 'city' in data.keys():
         query = query & Q(city=data['city'])    
 
+    if 'state' in data.keys():
+        query = query & Q(state=data['state'])    
+
     villas = Villa.objects.filter(query)
-    serializer = VillaSerializer(data=villas, many=True)
+    serializer = VillaSearchSerializer(data=villas, many=True)
     serializer.is_valid()
-    return Response({"message": 'search successfully', "data": serializer.data}, status=status.HTTP_200_OK)
+    len_data = len(serializer.data)
+    if int(data['number_of_villa']) < len_data:
+        start = (int(data['page']) - 1) * int(data['number_of_villa'])
+        end = min(int(data['page']) * int(data['number_of_villa']), len_data)
+        return Response({"message": 'search successfully', "data": serializer.data[start:end]}, status=status.HTTP_200_OK)
+    else:
+        return Response({"message": 'search successfully', "data": serializer.data}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET', ])
@@ -266,6 +331,12 @@ def show_villa_calendar(request):
 def register_villa(request):
     data = json.loads(json.dumps(request.data))
     data['customer'] = request.user.user_id
+
+    if 'start_date' not in request.data:
+        return Response('Start_date: None, BAD REQUEST!', status=status.HTTP_400_BAD_REQUEST)
+
+    if 'end_date' not in request.data:
+        return Response('End_date: None, BAD REQUEST!', status=status.HTTP_400_BAD_REQUEST)
 
     start_date = datetime.datetime.strptime(data['start_date'], '%Y-%m-%d')
     end_date = datetime.datetime.strptime(data['end_date'], '%Y-%m-%d')

@@ -143,3 +143,20 @@ class VillaTest(TestCase):
         villa.images.add(new_image)
 
         self.assertEqual(villa.images.get(image_id=new_image.image_id), new_image)
+
+
+class RuleTest(TestCase):
+    """ Test module for Rule model """
+
+    def setUp(self):
+        Rule.objects.create(
+            text='This is a new rule!'
+        )
+
+        Rule.objects.create(
+            text='SDFTYUKJHNBVFGBNBW@#$%^&^%$^*(&^%$%#$%^&IUKJHGBFDDSWR#T$%^UIUKHNF'
+        )
+
+    def test_rule_str(self):
+        rule = Rule.objects.get(text='This is a new rule!')
+        self.assertEqual(rule.__str__(), 'This is a new rule!')

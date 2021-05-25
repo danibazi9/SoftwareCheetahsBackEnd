@@ -9,6 +9,27 @@ class VillaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class VillaSearchSerializer(serializers.ModelSerializer):
+    default_image_url = serializers.SerializerMethodField('get_default_image')
+
+    class Meta:
+        model = Villa
+        fields = ['villa_id', 'name', 'country', 'state', 'city', 'price_per_night', 'default_image_url']
+
+    def get_default_image(self, villa):
+        images = villa.images
+        for i in images.all():
+            if i.default:
+                return i.image.url
+
+
+class RuleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Rule
+        fields = '__all__'
+
+
 class ImageSerializer(serializers.ModelSerializer):
 
     class Meta:
