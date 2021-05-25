@@ -261,8 +261,8 @@ class UserVilla(APIView):
 def get_fixed_rules(request):
     fixed_rules = [
         '3 days ahead of schedule nothing will be returned.',
-        '7 days ahead of schedule 30 % of price will be returned.',
-        'More than 7 days ahead of schedule 100 % of price will be returned.'
+        '7 days ahead of schedule 30% of price will be returned.',
+        'More than 7 days ahead of schedule 100% of price will be returned.'
     ]
 
     data = json.loads(json.dumps(fixed_rules))
@@ -273,11 +273,15 @@ def get_fixed_rules(request):
 @permission_classes((IsAuthenticated,))
 def get_special_rules(request):
     special_rules = [
-        'Not suitable for children',
-        'Not suitable for infants',
-        'No smoking',
-        'No pets',
-        'No parties or events'
+        'Smoking is not allowed in this place.',
+        'Pets are not allowed in this villa.',
+        'You can not invite more people than the maximum capacity.',
+        'We have no responsibility for lost property.',
+        'This place is rented only to the family.',
+        'In case of damage to the place, you will be compensated.',
+        'You are only allowed to park a car in the parking lot.',
+        'You are not allowed to put garbage in the yard or in the alley and it should be put in the trash.',
+        'The responsibility of cleaning the place is with you and no one is intended for this action.'
     ]
 
     for special_rule in special_rules:
