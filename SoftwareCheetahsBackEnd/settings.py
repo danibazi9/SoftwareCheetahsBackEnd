@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_cleanup',
     'rest_framework.authtoken',
-    'django_crontab',
+    #'django_crontab',
     'account',
     'villa',
 ]
