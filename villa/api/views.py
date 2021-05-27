@@ -176,7 +176,7 @@ def search(request):
     serializer.is_valid()
     return Response({"message":'search successfully' , "data" : serializer.data}, status=status.HTTP_200_OK)
 
-@api_view(['GET', ])
+@api_view(['GET', ]) 
 def show_villa_calendar(request):
     try:
         villa = Villa.objects.get(villa_id=request.GET['villa_id'])
@@ -186,4 +186,5 @@ def show_villa_calendar(request):
     serializer = ShowVillaCalendarSerializer(data=dates, many=True)
     serializer.is_valid()
     data = serializer.data
+    print(data)
     return Response({'message':'show villa calendar successfully', 'dates':data}, status=status.HTTP_200_OK)
