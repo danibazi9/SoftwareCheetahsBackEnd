@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from django.db.models import Count
 
 from villa.api.serializer import *
 from villa.models import *
@@ -377,6 +378,15 @@ def register_villa(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
 def get_most_reserved_city(request):
-    pass
+    number_of_villa = int(request.GET['number_of_city'])
+    most_registered = Calendar.objects.values('villa__country', 'villa__state', 'villa__city').order_by().annotate(Count('villa__city')).order_by('villa__city__count')[::-1][:number_of_villa]
+    data = []
+    print(most_registered)
+    for v in most_registered:
+        villa = Villa.objects.get(villa_id=v['villa'])
+        serializer = VillaSearchSerializer(villa)
+        data.append(serializer.data)
+    return Response({'message':'show most popular city successfully', 'data':[]}, status=status.HTTP_200_OK)

@@ -753,6 +753,7 @@ class MostPopularCityTest(TestCase):
             type='Urban',
             price_per_night=10,
             country='Iran',
+            state='Esfahan',
             city='Esfahan',
             address='Iran Esfahan',
             latitude=100,
@@ -769,6 +770,7 @@ class MostPopularCityTest(TestCase):
             type='Urban',
             price_per_night=10,
             country='Iran',
+            state='Tehran',
             city='Tehran',
             address='Iran Tehran',
             latitude=100,
@@ -785,6 +787,7 @@ class MostPopularCityTest(TestCase):
             type='Urban',
             price_per_night=10,
             country='Iran',
+            state='Esfahan',
             city='Esfahan',
             address='Iran Esfahan',
             latitude=100,
@@ -875,11 +878,11 @@ class MostPopularCityTest(TestCase):
         tests = [{'number_of_city':2}, {'number_of_city':1}]
         outputs = [
             [
-                {'city':'Esfahan', 'no_villa':2, 'order':1},
-                {'city':'Tehran', 'no_villa':1, 'order':2}   
+                {'country':'Iran', 'state':'Esfahan', 'city':'Esfahan', 'no_villa':2, 'order':1},
+                {'country':'Iran', 'state':'Tehran', 'city':'Tehran', 'no_villa':1, 'order':2}   
             ],
             [
-                {'city':'Esfahan', 'no_villa':2, 'order':1}
+                {'country':'Iran', 'state':'Esfahan', 'city':'Esfahan', 'no_villa':2, 'order':1}
             ]
         ]
 
@@ -889,5 +892,4 @@ class MostPopularCityTest(TestCase):
                 data=tests[test],
                 HTTP_AUTHORIZATION='Token {}'.format(self.valid_token)
             )
-            result = [v['villa_id'] for v in responce.data['data']]
-            self.assertEquals(result, outputs[test])
+            self.assertListEqual(responce.data['data'],outputs[test])
