@@ -383,10 +383,14 @@ def register_villa(request):
 def get_most_reserved_city(request):
     number_of_villa = int(request.GET['number_of_city'])
     most_registered = Calendar.objects.values('villa__country', 'villa__state', 'villa__city').order_by().annotate(Count('villa__city')).order_by('villa__city__count')[::-1][:number_of_villa]
-    data = []
-    print(most_registered)
+    data_list = []
     for v in most_registered:
-        villa = Villa.objects.get(villa_id=v['villa'])
-        serializer = VillaSearchSerializer(villa)
-        data.append(serializer.data)
-    return Response({'message':'show most popular city successfully', 'data':[]}, status=status.HTTP_200_OK)
+        data = {}
+        villa_count = Villa.objects.filter(country=v['villa__country'], state=v['villa__state'], city=v['villa__city']).count()
+        data['country'] = v['villa__country']
+        data['state'] = v['villa__state']
+        data['city'] = v['villa__city']
+        data['no_villa'] = villa_count
+        data_list.append(data)
+
+    return Response({'message':'show most popular city successfully', 'data':data_list}, status=status.HTTP_200_OK)

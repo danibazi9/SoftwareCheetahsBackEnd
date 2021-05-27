@@ -878,11 +878,11 @@ class MostPopularCityTest(TestCase):
         tests = [{'number_of_city':2}, {'number_of_city':1}]
         outputs = [
             [
-                {'country':'Iran', 'state':'Esfahan', 'city':'Esfahan', 'no_villa':2, 'order':1},
-                {'country':'Iran', 'state':'Tehran', 'city':'Tehran', 'no_villa':1, 'order':2}   
+                {'country':'Iran', 'state':'Esfahan', 'city':'Esfahan', 'no_villa':2},
+                {'country':'Iran', 'state':'Tehran', 'city':'Tehran', 'no_villa':1}   
             ],
             [
-                {'country':'Iran', 'state':'Esfahan', 'city':'Esfahan', 'no_villa':2, 'order':1}
+                {'country':'Iran', 'state':'Esfahan', 'city':'Esfahan', 'no_villa':2}
             ]
         ]
 
