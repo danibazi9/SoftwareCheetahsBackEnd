@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,7 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_cleanup',
     'rest_framework.authtoken',
-    'django_crontab',
+    'chat',
     'account',
     'villa',
 ]
@@ -87,6 +88,15 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'SoftwareCheetahsBackEnd.wsgi.application'
+ASGI_APPLICATION = 'SoftwareCheetahsBackEnd.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database
@@ -98,12 +108,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
-# cronjobs
-CRONJOBS = [
-    ('*/1 * * * *', 'tasks.remove_waste_images')
-    # ('*/60 0 * * *', 'tasks.remove_waste_images')
-]
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -150,6 +154,8 @@ USE_TZ = True
 '''STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'''
 STATIC_URL = '/static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticsfile')
+
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
 )
@@ -160,6 +166,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "live-static", "static-root")
 
 #STATIC_ROOT = "/home/cfedeploy/webapps/cfehome_static_root/"
 
-MEDIA_URL = "/media/"
+MEDIA_URL = "/live-static/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "live-static", "media-root")

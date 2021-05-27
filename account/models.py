@@ -26,8 +26,7 @@ class MyAccountManager(BaseUserManager):
             email=self.normalize_email(email),
         )
 
-        user.username = self.normalize_email(email)
-
+        #user.username = email
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -71,7 +70,7 @@ class Account(AbstractBaseUser):
     bio = models.TextField(blank=True, null=True)
 
     # auto-generate fields
-    username = models.CharField(verbose_name='username', max_length=30, unique=True)
+    #username = models.CharField(verbose_name='username', max_length=30, unique=True)
     date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
     is_admin = models.BooleanField(default=False)
@@ -100,3 +99,12 @@ class Account(AbstractBaseUser):
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
+
+
+class Document(models.Model):
+    document_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(Account, related_name='documents', on_delete=models.CASCADE)
+    file = models.FileField(upload_to='users/documents/')
+
+    def __str__(self):
+        return f"Document ID: {self.document_id}, Owner: {self.user.first_name} {self.user.last_name}"

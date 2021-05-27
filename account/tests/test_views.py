@@ -189,6 +189,7 @@ class EmailTest(TestCase):
 class ProfilePictureTest(TestCase):
     def setUp(self):
         settings.MEDIA_ROOT = tempfile.mkdtemp()
+        
         account = Account.objects.create(
             first_name='Danial',
             last_name='Bazmandeh',
@@ -202,7 +203,11 @@ class ProfilePictureTest(TestCase):
         self.invalid_token = '7900b33a300eff557ebbe2d5261d00e2eaaac880'
 
     def test_update_account_image(self):
-        data = {'base64': 'test'}
+        import os
+        print('directory : ', os.getcwd())
+        image = open("account/tests/image.txt","r")
+        data = {'base64': image.read()}
+        image.close()
         response = client.post(
             reverse('account:update_account_image'),
             data=json.dumps(data),
