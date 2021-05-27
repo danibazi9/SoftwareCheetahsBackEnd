@@ -382,7 +382,16 @@ def register_villa(request):
 @permission_classes((IsAuthenticated,))
 def get_most_reserved_city(request):
     number_of_villa = int(request.GET['number_of_city'])
-    most_registered = Calendar.objects.values('villa__country', 'villa__state', 'villa__city').order_by().annotate(Count('villa__city')).order_by('villa__city__count')[::-1][:number_of_villa]
+
+    query = Q()
+    if 'country' in request.GET.keys():
+        country = request.GET['country']
+        query = query & Q(villa__country=country)
+    if 'state' in request.GET.keys():
+        state = request.GET['state']
+        query = query & Q(villa__state=state)
+
+    most_registered = Calendar.objects.filter(query).values('villa__country', 'villa__state', 'villa__city').order_by().annotate(Count('villa__city')).order_by('villa__city__count')[::-1][:number_of_villa]
     data_list = []
     for v in most_registered:
         data = {}

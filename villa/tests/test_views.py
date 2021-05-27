@@ -875,7 +875,12 @@ class MostPopularCityTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)      
 
     def test_show_MostPopularCity(self):
-        tests = [{'number_of_city':2}, {'number_of_city':1}]
+        tests = [
+                    {'number_of_city':2},
+                    {'number_of_city':1},
+                    {'country':'USA', 'number_of_city':2},
+                    {'country':'Iran', 'state':'Tehran', 'number_of_city':2}
+                 ]
         outputs = [
             [
                 {'country':'Iran', 'state':'Esfahan', 'city':'Esfahan', 'no_villa':2},
@@ -883,6 +888,10 @@ class MostPopularCityTest(TestCase):
             ],
             [
                 {'country':'Iran', 'state':'Esfahan', 'city':'Esfahan', 'no_villa':2}
+            ],
+            [],
+            [
+                {'country':'Iran', 'state':'Tehran', 'city':'Tehran', 'no_villa':1} 
             ]
         ]
 
