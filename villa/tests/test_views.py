@@ -374,7 +374,9 @@ class VillaSearchTest(TestCase):
             longitude=100,
             area=1,
             owner=owner,
-            capacity=10
+            capacity=10,
+            max_capacity=10,
+            postal_code='1234567890'
         )
 
         Villa.objects.create(
@@ -388,7 +390,9 @@ class VillaSearchTest(TestCase):
             longitude=100,
             area=1,
             owner=owner,
-            capacity=10
+            capacity=10,
+            max_capacity=10,
+            postal_code='0123456789'
         )
 
         Villa.objects.create(
@@ -402,7 +406,9 @@ class VillaSearchTest(TestCase):
             longitude=100,
             area=1,
             owner=owner,
-            capacity=10
+            capacity=10,
+            max_capacity=10,
+            postal_code='2345678901'
         )
 
     def test_search_villa(self):

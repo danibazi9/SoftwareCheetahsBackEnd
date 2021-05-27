@@ -111,6 +111,7 @@ class UserVilla(APIView):
 
             owner = Account.objects.get(user_id=data['owner'])
             data['owner'] = owner.__str__()
+            data['phone_number'] = owner.phone_number
             data['owner_image'] = None
 
             if owner.image:
@@ -330,6 +331,12 @@ def show_villa_calendar(request):
 def register_villa(request):
     data = json.loads(json.dumps(request.data))
     data['customer'] = request.user.user_id
+
+    if 'start_date' not in request.data:
+        return Response('Start_date: None, BAD REQUEST!', status=status.HTTP_400_BAD_REQUEST)
+
+    if 'end_date' not in request.data:
+        return Response('End_date: None, BAD REQUEST!', status=status.HTTP_400_BAD_REQUEST)
 
     start_date = datetime.datetime.strptime(data['start_date'], '%Y-%m-%d')
     end_date = datetime.datetime.strptime(data['end_date'], '%Y-%m-%d')
