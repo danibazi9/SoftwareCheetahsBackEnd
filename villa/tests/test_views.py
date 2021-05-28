@@ -362,8 +362,21 @@ class VillaSearchTest(TestCase):
             gender='Male',
             password='123456'
         )
+        owner.username = owner.email
+        owner.save()
 
-        Villa.objects.create(
+        customer = Account.objects.create(
+            first_name='Sadegh',
+            last_name='Jafari',
+            email='sadeghjafari@gmail.com',
+            phone_number='+989152147501',
+            gender='Male',
+            password='123456'
+        )
+        customer.username = customer.email
+        customer.save()
+
+        v1 = Villa.objects.create(
             name='test1',
             type='Urban',
             price_per_night=10,
@@ -374,12 +387,10 @@ class VillaSearchTest(TestCase):
             longitude=100,
             area=1,
             owner=owner,
-            capacity=10,
-            max_capacity=10,
-            postal_code='1234567890'
+            capacity=10
         )
 
-        Villa.objects.create(
+        v2 = Villa.objects.create(
             name='test2',
             type='Urban',
             price_per_night=10,
@@ -390,30 +401,49 @@ class VillaSearchTest(TestCase):
             longitude=100,
             area=1,
             owner=owner,
-            capacity=10,
-            max_capacity=10,
-            postal_code='0123456789'
+            capacity=10
         )
 
-        Villa.objects.create(
-            name='test3',
-            type='Urban',
-            price_per_night=10,
-            country='Iran',
-            city='Esfahan',
-            address='Iran Esfahan',
-            latitude=100,
-            longitude=100,
-            area=1,
-            owner=owner,
-            capacity=10,
-            max_capacity=10,
-            postal_code='2345678901'
+        Calendar.objects.create(
+            customer=customer,
+            villa=v1,
+            start_date=datetime.now(),
+            end_date=datetime.now() + timedelta(days=1)
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v1,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5)
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v2,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5)
         )
 
     def test_search_villa(self):
-        datas = [{'country':'Iran'},{'city':'Esfahan'},{'country':'Iran','city':'Tehran'}]
-        result_count = [3,2,1]
+        datas = [{'country':'Iran', 'number_of_villa':2, 'page':1},
+                 {'city':'Esfahan', 'number_of_villa':2, 'page':1},
+                 {'country':'Iran','city':'Tehran', 'number_of_villa':2, 'page':1}]
+                 
+        result_count = [2,2,1]
+        for test in range(len(result_count)):
+            response = client.get(
+                reverse('villa:search'),
+                data = datas[test],
+            )
+            self.assertEquals(len(response.data['data']),result_count[test])
+
+    def test_searchVilla_withDate(self):
+        datas = [{'country':'Iran', 'number_of_villa':2, 'page':1},
+                 {'city':'Esfahan', 'number_of_villa':2, 'page':1},
+                 {'country':'Iran','city':'Tehran', 'number_of_villa':2, 'page':1}]
+                 
+        result_count = [2,2,1]
         for test in range(len(result_count)):
             response = client.get(
                 reverse('villa:search'),
@@ -678,7 +708,201 @@ class RegisterVillaTest(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+        
+class MostPopularCityTest(TestCase):
+    def setUp(self) -> None:
+        new_user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi@gmail.com',
+            phone_number='+989152147654',
+            gender='Male',
+            password='123456'
+        )
+        new_user.username = new_user.email
+        new_user.save()
 
+        self.valid_token, self.created = Token.objects.get_or_create(user=new_user)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+
+        owner = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+        owner.username = owner.email
+        owner.save()
+
+        customer = Account.objects.create(
+            first_name='Sadegh',
+            last_name='Jafari',
+            email='sadeghjafari@gmail.com',
+            phone_number='+989152147501',
+            gender='Male',
+            password='123456'
+        )
+        customer.username = customer.email
+        customer.save()
+
+        v1 = Villa.objects.create(
+            name='test1',
+            type='Urban',
+            price_per_night=10,
+            country='Iran',
+            state='Esfahan',
+            city='Esfahan',
+            address='Iran Esfahan',
+            latitude=100,
+            longitude=100,
+            area=1,
+            owner=owner,
+            capacity=10,
+            max_capacity=20,
+            postal_code='1234'
+        )
+
+        v2 = Villa.objects.create(
+            name='test2',
+            type='Urban',
+            price_per_night=10,
+            country='Iran',
+            state='Tehran',
+            city='Tehran',
+            address='Iran Tehran',
+            latitude=100,
+            longitude=100,
+            area=1,
+            owner=owner,
+            capacity=10,
+            max_capacity=20,
+            postal_code='1235'
+        )
+
+        v3 = Villa.objects.create(
+            name='test3',
+            type='Urban',
+            price_per_night=10,
+            country='Iran',
+            state='Esfahan',
+            city='Esfahan',
+            address='Iran Esfahan',
+            latitude=100,
+            longitude=100,
+            area=1,
+            owner=owner,
+            capacity=10,
+            max_capacity=20,
+            postal_code='123445'
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v1,
+            start_date=datetime.now(),
+            end_date=datetime.now() + timedelta(days=1),
+            num_of_passengers=10,
+            total_cost=50,
+            rate=3
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v1,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=5,
+            total_cost=40
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v3,
+            start_date=datetime.now(),
+            end_date=datetime.now() + timedelta(days=1),
+            num_of_passengers=10,
+            total_cost=50,
+            rate=3
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v3,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=5,
+            total_cost=40
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v2,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=4,
+            total_cost=100,
+            rate=1
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v2,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=5,
+            total_cost=40,
+            rate=5
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v2,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=4,
+            total_cost=100,
+            rate=5
+        )
+
+    def test_invalid_token(self):
+        response = client.get(
+            reverse('villa:show_most_popular_city'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)      
+
+    def test_show_MostPopularCity(self):
+        tests = [
+                    {'number_of_city':2},
+                    {'number_of_city':1},
+                    {'country':'USA', 'number_of_city':2},
+                    {'country':'Iran', 'state':'Tehran', 'number_of_city':2}
+                 ]
+        outputs = [
+            [
+                {'country':'Iran', 'state':'Esfahan', 'city':'Esfahan', 'no_villa':2},
+                {'country':'Iran', 'state':'Tehran', 'city':'Tehran', 'no_villa':1}   
+            ],
+            [
+                {'country':'Iran', 'state':'Esfahan', 'city':'Esfahan', 'no_villa':2}
+            ],
+            [],
+            [
+                {'country':'Iran', 'state':'Tehran', 'city':'Tehran', 'no_villa':1} 
+            ]
+        ]
+
+        for test in range(len(tests)):
+            responce = client.get(
+                reverse("villa:show_most_popular_city"),
+                data=tests[test],
+                HTTP_AUTHORIZATION='Token {}'.format(self.valid_token)
+            )
+            self.assertListEqual(responce.data['data'],outputs[test])
+
+            
 class MostRegisteredVillasTest(TestCase):
     def setUp(self) -> None:
         new_user = Account.objects.create(
@@ -814,7 +1038,7 @@ class MostRegisteredVillasTest(TestCase):
             result = [v['villa_id'] for v in responce.data['data']]
             self.assertEquals(result, outputs[test])
 
-
+            
 class MostRatedVillasTest(TestCase):
     def setUp(self) -> None:
         new_user = Account.objects.create(
@@ -953,4 +1177,3 @@ class MostRatedVillasTest(TestCase):
             )
             result = [v['villa_id'] for v in responce.data['data']]
             self.assertEquals(result, outputs[test])
-            

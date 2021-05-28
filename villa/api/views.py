@@ -308,7 +308,23 @@ def search(request):
         query = query & Q(state=data['state'])    
 
     villas = Villa.objects.filter(query)
-    serializer = VillaSearchSerializer(data=villas, many=True)
+    if 'start_date' in data.keys() and 'end_date' in data.keys():
+        start_date = datetime.datetime.strptime(data['start_date'], '%Y-%m-%d')
+        end_date = datetime.datetime.strptime(data['end_date'], '%Y-%m-%d')
+        selected_villas = []
+        for v in villas:
+            query = Q(villa=v)
+            query = query & (
+                            Q(start_date__gte=start_date.date(), start_date__lt=end_date.date())
+                            | Q(start_date__lte=start_date.date(), end_date__gte=end_date.date())
+                            | Q(end_date__gt=start_date.date(), end_date__lte=end_date.date())
+                            )
+            no_overlapped_calendars = Calendar.objects.filter(query).count()
+            if no_overlapped_calendars == 0:
+                selected_villas.append(v)
+    else:
+        selected_villas = villas
+    serializer = VillaSearchSerializer(data=selected_villas, many=True)
     serializer.is_valid()
     len_data = len(serializer.data)
     if int(data['number_of_villa']) < len_data:
@@ -374,6 +390,33 @@ def register_villa(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def get_most_reserved_city(request):
+    number_of_villa = int(request.GET['number_of_city'])
+
+    query = Q()
+    if 'country' in request.GET.keys():
+        country = request.GET['country']
+        query = query & Q(villa__country=country)
+    if 'state' in request.GET.keys():
+        state = request.GET['state']
+        query = query & Q(villa__state=state)
+
+    most_registered = Calendar.objects.filter(query).values('villa__country', 'villa__state', 'villa__city').order_by().annotate(Count('villa__city')).order_by('villa__city__count')[::-1][:number_of_villa]
+    data_list = []
+    for v in most_registered:
+        data = {}
+        villa_count = Villa.objects.filter(country=v['villa__country'], state=v['villa__state'], city=v['villa__city']).count()
+        data['country'] = v['villa__country']
+        data['state'] = v['villa__state']
+        data['city'] = v['villa__city']
+        data['no_villa'] = villa_count
+        data_list.append(data)
+
+    return Response({'message':'show most popular city successfully', 'data':data_list}, status=status.HTTP_200_OK)
+
+  
 @api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
 def show_most_registered_villas(request):
