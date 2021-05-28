@@ -1059,11 +1059,19 @@ class MostRegisteredVillasTest(TestCase):
             reverse('villa:show_most_registered_villas'),
             HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
         )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)      
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)  
+
+    def test_invalid_requestParams(self):
+        response = client.get(
+            reverse('villa:show_most_registered_villas'),
+            data={},
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)     
 
     def test_show_MostRegisterVillas(self):
-        tests = [{'number_of_villa':2}, {'number_of_villa':1}]
-        outputs = [[2,1], [2]]
+        tests = [{'number_of_villa':2}, {'number_of_villa':1}, {'number_of_villa':0}]
+        outputs = [[2,1], [2], []]
 
         for test in range(len(tests)):
             responce = client.get(
@@ -1199,11 +1207,19 @@ class MostRatedVillasTest(TestCase):
             reverse('villa:show_most_registered_villas'),
             HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
         )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)      
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)   
+
+    def test_invalid_requestParams(self):
+        response = client.get(
+            reverse('villa:show_most_registered_villas'),
+            data={},
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)    
 
     def test_show_MostRatedVillas(self):
-        tests = [{'number_of_villa':2}, {'number_of_villa':1}]
-        outputs = [[2,1], [2]]
+        tests = [{'number_of_villa':2}, {'number_of_villa':1}, {'number_of_villa':0}]
+        outputs = [[2,1], [2], []]
 
         for test in range(len(tests)):
             responce = client.get(
