@@ -907,16 +907,26 @@ class MostPopularCityTest(TestCase):
             reverse('villa:show_most_popular_city'),
             HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
         )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)      
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)   
+
+    def test_invalid_requestParams(self):
+        response = client.get(
+            reverse('villa:show_most_popular_city'),
+            data={},
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)    
 
     def test_show_MostPopularCity(self):
         tests = [
+                    {'number_of_city':0},
                     {'number_of_city':2},
                     {'number_of_city':1},
                     {'country':'USA', 'number_of_city':2},
                     {'country':'Iran', 'state':'Tehran', 'number_of_city':2}
                  ]
         outputs = [
+            [],
             [
                 {'country':'Iran', 'state':'Esfahan', 'city':'Esfahan', 'no_villa':2},
                 {'country':'Iran', 'state':'Tehran', 'city':'Tehran', 'no_villa':1}   

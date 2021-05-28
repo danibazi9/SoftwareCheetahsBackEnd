@@ -403,6 +403,9 @@ def register_villa(request):
 @api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
 def get_most_reserved_city(request):
+    if 'number_of_city' not in request.GET:
+        return Response(f"Number_of_city: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
     number_of_villa = int(request.GET['number_of_city'])
 
     query = Q()
