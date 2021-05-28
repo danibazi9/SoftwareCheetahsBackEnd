@@ -3,6 +3,7 @@ import datetime
 import json
 
 from django.core.files.base import ContentFile
+from django.db.models.aggregates import Avg
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -112,6 +113,7 @@ class UserVilla(APIView):
 
             owner = Account.objects.get(user_id=data['owner'])
             data['owner'] = owner.__str__()
+            data['phone_number'] = owner.phone_number
             data['owner_image'] = None
 
             if owner.image:
@@ -261,8 +263,8 @@ class UserVilla(APIView):
 def get_fixed_rules(request):
     fixed_rules = [
         '3 days ahead of schedule nothing will be returned.',
-        '7 days ahead of schedule 30 % of price will be returned.',
-        'More than 7 days ahead of schedule 100 % of price will be returned.'
+        '7 days ahead of schedule 30% of price will be returned.',
+        'More than 7 days ahead of schedule 100% of price will be returned.'
     ]
 
     data = json.loads(json.dumps(fixed_rules))
@@ -273,11 +275,15 @@ def get_fixed_rules(request):
 @permission_classes((IsAuthenticated,))
 def get_special_rules(request):
     special_rules = [
-        'Not suitable for children',
-        'Not suitable for infants',
-        'No smoking',
-        'No pets',
-        'No parties or events'
+        'Smoking is not allowed in this place.',
+        'Pets are not allowed in this villa.',
+        'You can not invite more people than the maximum capacity.',
+        'We have no responsibility for lost property.',
+        'This place is rented only to the family.',
+        'In case of damage to the place, you will be compensated.',
+        'You are only allowed to park a car in the parking lot.',
+        'You are not allowed to put garbage in the yard or in the alley and it should be put in the trash.',
+        'The responsibility of cleaning the place is with you and no one is intended for this action.'
     ]
 
     for special_rule in special_rules:
@@ -358,6 +364,12 @@ def register_villa(request):
     data = json.loads(json.dumps(request.data))
     data['customer'] = request.user.user_id
 
+    if 'start_date' not in request.data:
+        return Response('Start_date: None, BAD REQUEST!', status=status.HTTP_400_BAD_REQUEST)
+
+    if 'end_date' not in request.data:
+        return Response('End_date: None, BAD REQUEST!', status=status.HTTP_400_BAD_REQUEST)
+
     start_date = datetime.datetime.strptime(data['start_date'], '%Y-%m-%d')
     end_date = datetime.datetime.strptime(data['end_date'], '%Y-%m-%d')
 
@@ -392,7 +404,16 @@ def register_villa(request):
 @permission_classes((IsAuthenticated,))
 def get_most_reserved_city(request):
     number_of_villa = int(request.GET['number_of_city'])
-    most_registered = Calendar.objects.values('villa__country', 'villa__state', 'villa__city').order_by().annotate(Count('villa__city')).order_by('villa__city__count')[::-1][:number_of_villa]
+
+    query = Q()
+    if 'country' in request.GET.keys():
+        country = request.GET['country']
+        query = query & Q(villa__country=country)
+    if 'state' in request.GET.keys():
+        state = request.GET['state']
+        query = query & Q(villa__state=state)
+
+    most_registered = Calendar.objects.filter(query).values('villa__country', 'villa__state', 'villa__city').order_by().annotate(Count('villa__city')).order_by('villa__city__count')[::-1][:number_of_villa]
     data_list = []
     for v in most_registered:
         data = {}
@@ -404,3 +425,40 @@ def get_most_reserved_city(request):
         data_list.append(data)
 
     return Response({'message':'show most popular city successfully', 'data':data_list}, status=status.HTTP_200_OK)
+
+  
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def show_most_registered_villas(request):
+    if 'number_of_villa' not in request.GET:
+        return Response(f"Number_of_villa: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+    
+    number_of_villa = int(request.GET['number_of_villa'])
+    most_registered = Calendar.objects.values('villa').order_by().annotate(Count('villa')).order_by('villa__count')[::-1][:number_of_villa]
+    
+    data = []
+    for v in most_registered:
+        villa = Villa.objects.get(villa_id=v['villa'])
+        serializer = VillaSearchSerializer(villa)
+        data.append(serializer.data)
+    return Response({'message':'find most reserved successfully' ,'data':data}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def show_most_rated_villas(request):
+    if 'number_of_villa' not in request.GET:
+        return Response(f"Number_of_villa: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+    
+    number_of_villa = int(request.GET['number_of_villa'])
+    most_rated = Calendar.objects.values('villa').order_by().annotate(Avg('rate')).order_by('rate__avg')[::-1][:number_of_villa]
+    
+    data = []
+    for v in most_rated:
+        villa = Villa.objects.get(villa_id=v['villa'])
+        serializer = VillaSearchSerializer(villa)
+        
+        entry = serializer.data
+        entry['rate__avg'] = v['rate__avg']
+        data.append(entry)
+    return Response({'message':'find most rated successfully' ,'data':data}, status=status.HTTP_200_OK)
