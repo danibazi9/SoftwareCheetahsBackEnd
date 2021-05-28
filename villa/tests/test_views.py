@@ -454,6 +454,20 @@ class VillaSearchTest(TestCase):
             
 class CalendarTest(TestCase):
     def setUp(self):
+        new_user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi@gmail.com',
+            phone_number='+989152147654',
+            gender='Male',
+            password='123456'
+        )
+        new_user.username = new_user.email
+        new_user.save()
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=new_user)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+
         owner = Account.objects.create(
             first_name='Danial',
             last_name='Bazmandeh',
@@ -487,7 +501,9 @@ class CalendarTest(TestCase):
             longitude=100,
             area=1,
             owner=owner,
-            capacity=10
+            capacity=10,
+            max_capacity=20,
+            postal_code='1234'
         )
 
         v2 = Villa.objects.create(
@@ -501,38 +517,50 @@ class CalendarTest(TestCase):
             longitude=100,
             area=1,
             owner=owner,
-            capacity=10
+            capacity=10,
+            max_capacity=20,
+            postal_code='1235'
         )
 
         Calendar.objects.create(
             customer=customer,
             villa=v1,
             start_date=datetime.now(),
-            end_date=datetime.now() + timedelta(days=1)
+            end_date=datetime.now() + timedelta(days=1),
+            num_of_passengers=10,
+            total_cost=50,
+            rate=3
         )
 
         Calendar.objects.create(
             customer=customer,
             villa=v1,
             start_date=datetime.now() + timedelta(days=3),
-            end_date=datetime.now() + timedelta(days=5)
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=10,
+            total_cost=50,
+            rate=3
         )
 
         Calendar.objects.create(
             customer=customer,
             villa=v2,
             start_date=datetime.now() + timedelta(days=3),
-            end_date=datetime.now() + timedelta(days=5)
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=10,
+            total_cost=50,
+            rate=3
         )
 
     def test_show_calendar(self):
         tests = [{'villa_id':1}, {'villa_id':2}]
-        outputs = [2, 1]
+        outputs = [5, 3]
 
         for test in range(len(tests)):
             responce = client.get(
                 reverse("villa:show_calendar"),
-                data=tests[test]
+                data=tests[test],
+                HTTP_AUTHORIZATION='Token {}'.format(self.valid_token)
             )
             self.assertEquals(len(responce.data['dates']), outputs[test])
 
@@ -540,9 +568,17 @@ class CalendarTest(TestCase):
         
         responce = client.get(
             reverse("villa:show_calendar"),
-            data={"villa_id":5}
+            data={"villa_id":5},
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token)
         )
         self.assertEquals(responce.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_invalid_token(self):
+        response = client.get(
+            reverse('villa:show_most_popular_city'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED) 
 
 
 class RegisterVillaTest(TestCase):

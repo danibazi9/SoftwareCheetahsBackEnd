@@ -335,7 +335,8 @@ def search(request):
         return Response({"message": 'search successfully', "data": serializer.data}, status=status.HTTP_200_OK)
 
 
-@api_view(['GET', ])
+@api_view(['GET', ]) 
+@permission_classes((IsAuthenticated,))
 def show_villa_calendar(request):
     try:
         villa = Villa.objects.get(villa_id=request.GET['villa_id'])
@@ -345,7 +346,16 @@ def show_villa_calendar(request):
     serializer = CalendarSerializer(data=dates, many=True)
     serializer.is_valid()
     data = serializer.data
-    return Response({'message': 'show villa calendar successfully', 'dates': data}, status=status.HTTP_200_OK)
+    date_list = []
+    for date in data:
+        start_date = datetime.datetime.strptime(date['start_date'], '%Y-%m-%d')
+        end_date = datetime.datetime.strptime(date['end_date'], '%Y-%m-%d')
+        current_date = start_date
+        while current_date <= end_date:
+            date_list.append(current_date.strftime('%Y-%m-%d'))
+            current_date = current_date + datetime.timedelta(days=1)
+        
+    return Response({'message': 'show villa calendar successfully', 'dates': date_list}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST', ])
