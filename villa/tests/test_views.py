@@ -677,3 +677,280 @@ class RegisterVillaTest(TestCase):
             HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class MostRegisteredVillasTest(TestCase):
+    def setUp(self) -> None:
+        new_user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi@gmail.com',
+            phone_number='+989152147654',
+            gender='Male',
+            password='123456'
+        )
+        new_user.username = new_user.email
+        new_user.save()
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=new_user)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+
+        owner = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+        owner.username = owner.email
+        owner.save()
+
+        customer = Account.objects.create(
+            first_name='Sadegh',
+            last_name='Jafari',
+            email='sadeghjafari@gmail.com',
+            phone_number='+989152147501',
+            gender='Male',
+            password='123456'
+        )
+        customer.username = customer.email
+        customer.save()
+
+        v1 = Villa.objects.create(
+            name='test1',
+            type='Urban',
+            price_per_night=10,
+            country='Iran',
+            city='Esfahan',
+            address='Iran Esfahan',
+            latitude=100,
+            longitude=100,
+            area=1,
+            owner=owner,
+            capacity=10,
+            max_capacity=20,
+            postal_code='1234'
+        )
+
+        v2 = Villa.objects.create(
+            name='test2',
+            type='Urban',
+            price_per_night=10,
+            country='Iran',
+            city='Tehran',
+            address='Iran Tehran',
+            latitude=100,
+            longitude=100,
+            area=1,
+            owner=owner,
+            capacity=10,
+            max_capacity=20,
+            postal_code='1235'
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v1,
+            start_date=datetime.now(),
+            end_date=datetime.now() + timedelta(days=1),
+            num_of_passengers=10,
+            total_cost=50
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v1,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=5,
+            total_cost=40
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v2,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=4,
+            total_cost=100
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v2,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=5,
+            total_cost=40
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v2,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=4,
+            total_cost=100
+        )
+
+    def test_invalid_token(self):
+        response = client.get(
+            reverse('villa:show_most_registered_villas'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)      
+
+    def test_show_MostRegisterVillas(self):
+        tests = [{'number_of_villa':2}, {'number_of_villa':1}]
+        outputs = [[2,1], [2]]
+
+        for test in range(len(tests)):
+            responce = client.get(
+                reverse("villa:show_most_registered_villas"),
+                data=tests[test],
+                HTTP_AUTHORIZATION='Token {}'.format(self.valid_token)
+            )
+            result = [v['villa_id'] for v in responce.data['data']]
+            self.assertEquals(result, outputs[test])
+
+
+class MostRatedVillasTest(TestCase):
+    def setUp(self) -> None:
+        new_user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi@gmail.com',
+            phone_number='+989152147654',
+            gender='Male',
+            password='123456'
+        )
+        new_user.username = new_user.email
+        new_user.save()
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=new_user)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+
+        owner = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+        owner.username = owner.email
+        owner.save()
+
+        customer = Account.objects.create(
+            first_name='Sadegh',
+            last_name='Jafari',
+            email='sadeghjafari@gmail.com',
+            phone_number='+989152147501',
+            gender='Male',
+            password='123456'
+        )
+        customer.username = customer.email
+        customer.save()
+
+        v1 = Villa.objects.create(
+            name='test1',
+            type='Urban',
+            price_per_night=10,
+            country='Iran',
+            city='Esfahan',
+            address='Iran Esfahan',
+            latitude=100,
+            longitude=100,
+            area=1,
+            owner=owner,
+            capacity=10,
+            max_capacity=20,
+            postal_code='1234'
+        )
+
+        v2 = Villa.objects.create(
+            name='test2',
+            type='Urban',
+            price_per_night=10,
+            country='Iran',
+            city='Tehran',
+            address='Iran Tehran',
+            latitude=100,
+            longitude=100,
+            area=1,
+            owner=owner,
+            capacity=10,
+            max_capacity=20,
+            postal_code='1235'
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v1,
+            start_date=datetime.now(),
+            end_date=datetime.now() + timedelta(days=1),
+            num_of_passengers=10,
+            total_cost=50,
+            rate=3
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v1,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=5,
+            total_cost=40
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v2,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=4,
+            total_cost=100,
+            rate=1
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v2,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=5,
+            total_cost=40,
+            rate=5
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v2,
+            start_date=datetime.now() + timedelta(days=3),
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=4,
+            total_cost=100,
+            rate=5
+        )
+
+    def test_invalid_token(self):
+        response = client.get(
+            reverse('villa:show_most_registered_villas'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)      
+
+    def test_show_MostRatedVillas(self):
+        tests = [{'number_of_villa':2}, {'number_of_villa':1}]
+        outputs = [[2,1], [2]]
+
+        for test in range(len(tests)):
+            responce = client.get(
+                reverse("villa:show_most_rated_villas"),
+                data=tests[test],
+                HTTP_AUTHORIZATION='Token {}'.format(self.valid_token)
+            )
+            result = [v['villa_id'] for v in responce.data['data']]
+            self.assertEquals(result, outputs[test])
+            
