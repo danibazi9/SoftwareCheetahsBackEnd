@@ -42,10 +42,16 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_cleanup',
     'rest_framework.authtoken',
+    'push_notifications',
     'chat',
     'account',
     'villa',
 ]
+
+PUSH_NOTIFICATIONS_SETTINGS = {
+        "FCM_API_KEY": "AAAAyz6pvDI:APA91bGLi4HpBTeX9b11ZbwBa3FhYvoyCkr9riFi9PEmMLyH2C1cbKHWLBTmNb"
+                       "-iKTg5Z3cznhY8XYKdWqW5ohpT1Dq1EShqjdTddMOPJbXUnWnp0LOJCKHoxhIET_zFEdDBmYWpkCN7",
+}
 
 AUTH_USER_MODEL = 'account.Account'
 
