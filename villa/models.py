@@ -89,6 +89,14 @@ class Calendar(models.Model):
     num_of_passengers = models.IntegerField()
     total_cost = models.FloatField()
     closed = models.BooleanField(default=False)
+    RATE_CHOICES=[
+        (1,1),
+        (2,2),
+        (3,3),
+        (4,4),
+        (5,5)
+    ]
+    rate = models.IntegerField(choices=RATE_CHOICES, null=True)
 
     def __str__(self):
         return self.villa.name + ", Customer: " + self.customer.__str__()
