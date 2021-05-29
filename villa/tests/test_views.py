@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 from villa.models import *
 from account.models import Account
 
-
 client = Client()
 
 BASE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'tests')
@@ -376,7 +375,7 @@ class VillaSearchTest(TestCase):
             owner=owner,
             capacity=10,
             max_capacity=10,
-            postal_code='1234567890'
+            postal_code='1234567800'
         )
 
         Villa.objects.create(
@@ -412,16 +411,16 @@ class VillaSearchTest(TestCase):
         )
 
     def test_search_villa(self):
-        datas = [{'country':'Iran'},{'city':'Esfahan'},{'country':'Iran','city':'Tehran'}]
-        result_count = [3,2,1]
+        datas = [{'country': 'Iran'}, {'city': 'Esfahan'}, {'country': 'Iran', 'city': 'Tehran'}]
+        result_count = [3, 2, 1]
         for test in range(len(result_count)):
             response = client.get(
                 reverse('villa:search'),
-                data = datas[test],
+                data=datas[test],
             )
-            self.assertEquals(len(response.data['data']),result_count[test])
+            self.assertEquals(len(response.data['data']), result_count[test])
 
-            
+
 class CalendarTest(TestCase):
     def setUp(self):
         owner = Account.objects.create(
@@ -457,7 +456,8 @@ class CalendarTest(TestCase):
             longitude=100,
             area=1,
             owner=owner,
-            capacity=10
+            capacity=10,
+            max_capacity=20
         )
 
         v2 = Villa.objects.create(
@@ -471,7 +471,8 @@ class CalendarTest(TestCase):
             longitude=100,
             area=1,
             owner=owner,
-            capacity=10
+            capacity=10,
+            max_capacity=19
         )
 
         Calendar.objects.create(
@@ -496,7 +497,7 @@ class CalendarTest(TestCase):
         )
 
     def test_show_calendar(self):
-        tests = [{'villa_id':1}, {'villa_id':2}]
+        tests = [{'villa_id': 1}, {'villa_id': 2}]
         outputs = [2, 1]
 
         for test in range(len(tests)):
@@ -507,10 +508,9 @@ class CalendarTest(TestCase):
             self.assertEquals(len(responce.data['dates']), outputs[test])
 
     def test_invalid_show_calendar(self):
-        
         responce = client.get(
             reverse("villa:show_calendar"),
-            data={"villa_id":5}
+            data={"villa_id": 5}
         )
         self.assertEquals(responce.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -550,6 +550,8 @@ class RegisterVillaTest(TestCase):
             'villa': self.new_villa.villa_id,
             'start_date': datetime.strftime(datetime.now() + timedelta(days=3), '%Y-%m-%d'),
             'end_date': datetime.strftime(datetime.now() + timedelta(days=6), '%Y-%m-%d'),
+            'num_of_passengers': 10,
+            'total_cost': 20000.5
         }
 
         self.invalid_register_villa = {
@@ -639,7 +641,9 @@ class RegisterVillaTest(TestCase):
             customer=self.new_user,
             villa=self.new_villa,
             start_date=datetime.now() + timedelta(days=3),
-            end_date=datetime.now() + timedelta(days=6)
+            end_date=datetime.now() + timedelta(days=6),
+            num_of_passengers=10,
+            total_cost=10222.02
         )
 
         response = client.post(
