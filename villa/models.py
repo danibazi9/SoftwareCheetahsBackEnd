@@ -82,13 +82,21 @@ class Villa(models.Model):
 
 class Calendar(models.Model):
     calendar_id = models.AutoField(primary_key=True)
-    customer = models.ForeignKey(Account, on_delete=models.CASCADE, null=True)
+    customer = models.ForeignKey(Account, on_delete=models.CASCADE)
     villa = models.ForeignKey(Villa, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
     num_of_passengers = models.IntegerField()
     total_cost = models.FloatField()
     closed = models.BooleanField(default=False)
+    RATE_CHOICES = [
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+        (5, 5)
+    ]
+    rate = models.IntegerField(choices=RATE_CHOICES, null=True)
 
     def __str__(self):
         return self.villa.name + ", Customer: " + self.customer.__str__()
