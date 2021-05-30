@@ -57,6 +57,13 @@ def get_all_villas(request):
             documents_list.append(document.file.url)
         x['documents'] = documents_list
 
+        rules_list = []
+
+        for rule_id in x['rules']:
+            rule = Rule.objects.get(rule_id=rule_id)
+            rules_list.append(rule.text)
+        x['rules'] = rules_list
+
     return Response(data, status=status.HTTP_200_OK)
 
 
