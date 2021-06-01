@@ -138,13 +138,13 @@ def update_account_image(request):
 @api_view(["GET", ])
 def show_account_image(request):
     account = request.user
-    print(account.image)
-    if str(account.image.url) == '':
-        image_url = None
-    else:
+    try:
         image_url = str(account.image.url)
+    except:
+        image_url = None
     return Response({"message" : "profile image send successfully", "base64_url" : image_url}, status=status.HTTP_200_OK)
 
+  
 @api_view(['POST', ])
 @permission_classes((IsAuthenticated,))
 def update_account_view(request):

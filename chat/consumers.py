@@ -3,7 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 import datetime
 from channels.db import database_sync_to_async
 
-from .models import Message
+from .models import Message, Chat
 from account.models import Account
 from .api.serializer import MessageSerializer
 import jwt
@@ -33,13 +33,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     # Receive message from WebSocket
     async def receive(self, text_data):
-        print(text_data)
-        #text_data_json = json.loads(text_data)
+        text_data_json = json.loads(text_data)
         #text_data_json['type'] = 'chat_message'
         #decodedPayload = jwt.decode(text_data_json['token'],None,None)
         #text_data_json['user_id'] = decodedPayload['user_id']
         # print(decodedPayload)
         #data = {}
+        print(text_data_json)
+        data = text_data_json
         #if text_data_json['order_type'] == 'create_message':
             #data = await self.create_message(event=text_data_json)
         #elif text_data_json['order_type'] == 'delete_message':
@@ -54,7 +55,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     # Receive message from room group
     async def chat_message(self, event):
-        print('event : ',event)
         # Send message to WebSocket
         await self.send(text_data=json.dumps(event))
 
@@ -62,8 +62,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def create_message(self , event):
         print(event)
-        chatroom = Chatroom.objects.filter(id=event['chatroom_id'])
-        user = User.objects.filter(id=event['user_id'])
+        chatroom = Chat.objects.filter(id=event['chatroom_id'])
+        user = Account.objects.filter(id=event['user_id'])
         message = Message.objects.create(
             chatroom=chatroom[0],
             user=user[0],
@@ -91,8 +91,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def delete_message(self , event):
         data = {}
-        chatroom = Chatroom.objects.filter(id=event['chatroom_id'])
-        user = User.objects.filter(id=event['user_id'])
+        chatroom = Chat.objects.filter(id=event['chatroom_id'])
+        user = Account.objects.filter(id=event['user_id'])
         if user[0] == chatroom[0].owner:
             message = Message.objects.filter(
                 id=event['message_id']

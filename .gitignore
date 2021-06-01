@@ -19,7 +19,12 @@ eggs/
 lib/
 lib64/
 parts/
+media-cdn/
+static/
 live-static/
+media-cdn/
+media-root/
+media/
 sdist/
 var/
 wheels/
@@ -104,13 +109,14 @@ ENV/
 
 .DS_Store
 media/
+*.sqlite3
 *.pyc
 *.db
 *.pid
-
+db.sqlite3
 # Ignore Django Migrations in Development if you are working on team
 
 # Only for Development only
-# **/migrations/**
-# !**/migrations
-# !**/migrations/__init__.py
+**/migrations/**
+!**/migrations
+!**/migrations/__init__.py

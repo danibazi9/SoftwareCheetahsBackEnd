@@ -30,6 +30,14 @@ class Document(models.Model):
         return f"Document ID: {self.document_id}"
 
 
+class Rule(models.Model):
+    rule_id = models.AutoField(primary_key=True)
+    text = models.TextField(unique=True)
+
+    def __str__(self):
+        return self.text
+
+
 class Villa(models.Model):
     villa_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=40)
@@ -65,7 +73,30 @@ class Villa(models.Model):
     number_of_double_beds = models.IntegerField(default=1)
     number_of_showers = models.IntegerField(default=1)
     documents = models.ManyToManyField(Document, blank=True)
+    rules = models.ManyToManyField(Rule, blank=True)
     visible = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name + ", Owner: " + self.owner.first_name + " " + self.owner.last_name
+
+
+class Calendar(models.Model):
+    calendar_id = models.AutoField(primary_key=True)
+    customer = models.ForeignKey(Account, on_delete=models.CASCADE)
+    villa = models.ForeignKey(Villa, on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    num_of_passengers = models.IntegerField()
+    total_cost = models.FloatField()
+    closed = models.BooleanField(default=False)
+    RATE_CHOICES = [
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+        (5, 5)
+    ]
+    rate = models.IntegerField(choices=RATE_CHOICES, null=True)
+
+    def __str__(self):
+        return self.villa.name + ", Customer: " + self.customer.__str__()
