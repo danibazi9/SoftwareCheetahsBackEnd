@@ -14,7 +14,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         print('room_name',self.room_name)
         self.room_group_name = 'chat_%s' % self.room_name
-        print(self.room_group_name)
 
         # Join room group
         await self.channel_layer.group_add(
@@ -39,7 +38,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         #text_data_json['user_id'] = decodedPayload['user_id']
         # print(decodedPayload)
         #data = {}
-        print(text_data_json)
+        print(text_data_json['user'],":",text_data_json['message'])
         data = text_data_json
         #if text_data_json['order_type'] == 'create_message':
             #data = await self.create_message(event=text_data_json)
@@ -49,8 +48,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Send message to room group
         await self.channel_layer.group_send(
             self.room_group_name,
-            #data,
-            text_data,
+            data,
         )
 
     # Receive message from room group
