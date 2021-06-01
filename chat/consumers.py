@@ -11,8 +11,9 @@ import jwt
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        self.user = self.scope["user"]
+        print(self.user.__dict__)
         self.room_name = self.scope['url_route']['kwargs']['room_name']
-        print('room_name',self.room_name)
         self.room_group_name = 'chat_%s' % self.room_name
 
         # Join room group
@@ -23,7 +24,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
-    async def disconnect(self, close_code):
+    async def disconnect(self):
         # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
@@ -32,18 +33,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     # Receive message from WebSocket
     async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        #text_data_json['type'] = 'chat_message'
-        #decodedPayload = jwt.decode(text_data_json['token'],None,None)
-        #text_data_json['user_id'] = decodedPayload['user_id']
-        # print(decodedPayload)
-        #data = {}
-        print(text_data_json['user'],":",text_data_json['message'])
-        data = text_data_json
-        #if text_data_json['order_type'] == 'create_message':
-            #data = await self.create_message(event=text_data_json)
-        #elif text_data_json['order_type'] == 'delete_message':
-            #data = await self.delete_message(event=text_data_json)
+        data = json.loads(text_data)
 
         # Send message to room group
         await self.channel_layer.group_send(
@@ -52,39 +42,44 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     # Receive message from room group
-    async def chat_message(self, event):
+    async def create(self, event):
         # Send message to WebSocket
-        await self.send(text_data=json.dumps(event))
+        #responce = await self.create_message(event=event)
+        responce = {}
+        await self.send(text_data=json.dumps(responce))
+
+
 
         
     @database_sync_to_async
     def create_message(self , event):
         print(event)
-        chatroom = Chat.objects.filter(id=event['chatroom_id'])
-        user = Account.objects.filter(id=event['user_id'])
+        try:
+            chat = Chat.objects.get(id=event['chat_id'])
+        except:
+            return {'message': f"chat {event['chat_id']} does not exist", "data":None}
+
+        try:
+            owner = Account.objects.get(id=event['user_id'])
+        except:
+            return {'message': f"owner {event['user_id']} does not exist", "data":None}
+
+        try:
+            parent_message = Message.objects.get(id=event['parent_message'])
+        except:
+            return {'message': f"message {event['parent_message']} does not exist", "data":None}
+
         message = Message.objects.create(
-            chatroom=chatroom[0],
-            user=user[0],
+            chat=chat,
+            owner=owner,
             text=event['message'],
+            parent_message=parent_message,
             time = datetime.datetime.now()
         )
-        # message.save()
+
         serializer = MessageSerializer(message)
-        data = serializer.data
-        data["time"] = message.time.ctime()
-        # for detect type of data
-        data['type'] = 'chat_message'
-        data['order_type'] = 'create_message'
-        data['message_id'] = message.id
-        data['username'] = user[0].username
-        if 'replyTo' in event.keys() :
-            replyMessage = Message.objects.filter(id=event['replyTo'])
-            message.parentMessage = replyMessage[0]
-            data['replyTo'] = replyMessage[0].id
         message.save()
-        # if message.parentMessage != None:
-        #     data['replyTo'] = message.parentMessage
-        return data
+        return {'message':'create message successfully', 'data':serializer.data}
 
     @database_sync_to_async
     def delete_message(self , event):

@@ -4,8 +4,7 @@ import json
 import _thread
 
 def on_message(ws, message):
-    pass
-    #print ('message : ', message)
+    print ('message : ', message)
 
 def on_error(ws, error):
     print ("eroror:", error)
@@ -17,14 +16,14 @@ def on_close(ws):
     initiate()
 
 def on_open(ws):
-    user = input("input your name : ")
+    token = int(input("input your token : "))
     print ("### Initiating new websocket connectipython my-websocket.pyon ###")
     def run(*args):
         for i in range(30000):
             # Sending message with 1 second intervall
             time.sleep(1)
             message = input("input your message : ")
-            ws.send(json.dumps({'message': message, 'type':'chat.message', 'user':user}))
+            ws.send(json.dumps({'message': message, 'type':'create', 'Authorization': f'Token {token}'}))
         time.sleep(1)
         ws.close()
         print ("thread terminating...")
