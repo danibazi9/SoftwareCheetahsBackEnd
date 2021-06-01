@@ -3,7 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 import datetime
 from channels.db import database_sync_to_async
 
-from .models import Message
+from .models import Message, Chat
 from account.models import Account
 from .api.serializer import MessageSerializer
 import jwt
@@ -60,8 +60,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def create_message(self , event):
         print(event)
-        chatroom = Chatroom.objects.filter(id=event['chatroom_id'])
-        user = User.objects.filter(id=event['user_id'])
+        chatroom = Chat.objects.filter(id=event['chatroom_id'])
+        user = Account.objects.filter(id=event['user_id'])
         message = Message.objects.create(
             chatroom=chatroom[0],
             user=user[0],
@@ -89,8 +89,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def delete_message(self , event):
         data = {}
-        chatroom = Chatroom.objects.filter(id=event['chatroom_id'])
-        user = User.objects.filter(id=event['user_id'])
+        chatroom = Chat.objects.filter(id=event['chatroom_id'])
+        user = Account.objects.filter(id=event['user_id'])
         if user[0] == chatroom[0].owner:
             message = Message.objects.filter(
                 id=event['message_id']
