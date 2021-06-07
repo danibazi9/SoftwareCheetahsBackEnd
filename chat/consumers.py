@@ -1,7 +1,9 @@
 import json
+from os import environ
 from channels.generic.websocket import AsyncWebsocketConsumer
 import datetime
 from channels.db import database_sync_to_async
+from asgiref.sync import sync_to_async
 
 from .models import Message, Chat
 from account.models import Account
@@ -13,12 +15,10 @@ import jwt
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        print(self.scope['headers'])
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = 'chat_%s' % self.room_name
         self.user = None
-        self.chat = self.room_name
-        print(self.chat)
+        self.chat = await self.get_chat(self.room_name)
 
         # Join room group
         await self.channel_layer.group_add(
@@ -45,16 +45,35 @@ class ChatConsumer(AsyncWebsocketConsumer):
             data,
         )
 
-    # Receive message from room group
-    async def create(self, event):
-        # Send message to WebSocket
-        #responce = await self.create_message(event=event)
-        responce = {}
+
+    async def update(self, event):
+        responce = await self.update_message(event)
         await self.send(text_data=json.dumps(responce))
+
+
+    async def fetch(self, event):
+        responce = await self.fetch_message(event)
+        await self.send(text_data=json.dumps(responce))
+
+
+    async def create(self, event):
+        responce = await self.create_message(event=event)
+        await self.send(text_data=json.dumps(responce))
+
+
+    async def delete(self, event):
+        responce = await self.delete_message(event=event)
+        await self.send(text_data=json.dumps(responce))
+
 
     async def authenticate(self, event):
         responce = await self.authenticate_user(event=event)
         await self.send(text_data=json.dumps(responce))
+
+
+    @sync_to_async
+    def get_chat(self, chat_id):
+        return Chat.objects.get(chat_id=chat_id)
 
 
     @database_sync_to_async
@@ -66,30 +85,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except:
             return {'message' : 'invalid token'}
 
+
     @database_sync_to_async
     def create_message(self , event):
-        print(event)
         if self.user == None:
             return {'message': 'authenticate needed.', "data":None}
 
-        try:
-            chat = Chat.objects.get(id=event['chat_id'])
-        except:
-            return {'message': f"chat {event['chat_id']} does not exist", "data":None}
-
-        try:
-            owner = Account.objects.get(id=event['user_id'])
-        except:
-            return {'message': f"owner {event['user_id']} does not exist", "data":None}
-
-        try:
-            parent_message = Message.objects.get(id=event['parent_message'])
-        except:
-            return {'message': f"message {event['parent_message']} does not exist", "data":None}
+        if 'parent_message' in event.keys():
+            try:
+                parent_message = Message.objects.get(id=event['parent_message'])
+            except:
+                return {'message': f"message {event['parent_message']} does not exist", "data":None}
+        else:
+            parent_message = None
 
         message = Message.objects.create(
-            chat=chat,
-            owner=owner,
+            chat=self.chat,
+            owner=self.user,
             text=event['message'],
             parent_message=parent_message,
             time = datetime.datetime.now()
@@ -99,26 +111,48 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message.save()
         return {'message':'create message successfully', 'data':serializer.data}
 
+
     @database_sync_to_async
     def delete_message(self , event):
-        data = {}
-        chatroom = Chat.objects.filter(id=event['chatroom_id'])
-        user = Account.objects.filter(id=event['user_id'])
-        if user[0] == chatroom[0].owner:
-            message = Message.objects.filter(
-                id=event['message_id']
-            )
-            if list(message) == []:
-                data['message'] = 'message not found'
-            else:
-                data['message_id']=message[0].id
-                message[0].delete()
-                data['message'] = 'message delete successfully'
+        if self.user == None:
+            return {'message': 'authenticate needed.', "data":None}
+
+        try:
+            message = Message.objects.get(message_id=event["message_id"])
+        except:
+            return {'message':'this message does not exist'}
+
+        message.delete()
+        return {'message':'delete message successfully',
+                'data':{'message_id':event['message_id']}}
+
+
+    @database_sync_to_async
+    def fetch_message(self, event):
+        if self.user == None:
+            return {'message': 'authenticate needed.', "data":None}
+
+        messages = Message.objects.filter(chat=self.chat)
+        serializer = MessageSerializer(messages, many=True)
+        return {'message':'fetch successfully', 'data':serializer.data}
+
+
+    @database_sync_to_async
+    def update_message(self, event):
+        if self.user == None:
+            return {'message': 'authenticate needed.', "data":None}
+
+        try:
+            message = Message.objects.get(message_id=event["message_id"])
+        except:
+            return {'message':'this message does not exist'}
+
+        if 'text' in event.keys():
+            message.text = event['text']
+
+        serializer = MessageSerializer(message)
+        message.save()
+
+        return {'message':'update message successfully', 'data':serializer.data}
                 
-        else:
-            data['message'] = 'user is not owner'
-        data['type'] = 'chat_message'
-        data['order_type'] = 'delete_message'
-        print(data)
-        return data
     

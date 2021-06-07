@@ -25,7 +25,10 @@ def on_open(ws):
             # Sending message with 1 second intervall
             time.sleep(1)
             message = input("input your message : ")
-            ws.send(json.dumps({'message': message, 'type':'create', 'Authorization': f'Token {token}'}))
+            #ws.send(json.dumps({'message': message, 'type':'create'}))
+            #ws.send(json.dumps({'message_id': int(message), 'type':'delete'}))
+            ws.send(json.dumps({'message_id': 11, 'type':'update', 'text':message}))
+            ws.send(json.dumps({'type':'fetch'}))
         time.sleep(1)
         ws.close()
         print ("thread terminating...")
