@@ -5,16 +5,20 @@ from channels.db import database_sync_to_async
 
 from .models import Message, Chat
 from account.models import Account
+from rest_framework.authtoken.models import Token
+
 from .api.serializer import MessageSerializer
 import jwt
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.user = self.scope["user"]
-        print(self.user.__dict__)
+        print(self.scope['headers'])
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = 'chat_%s' % self.room_name
+        self.user = None
+        self.chat = self.room_name
+        print(self.chat)
 
         # Join room group
         await self.channel_layer.group_add(
@@ -48,12 +52,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
         responce = {}
         await self.send(text_data=json.dumps(responce))
 
+    async def authenticate(self, event):
+        responce = await self.authenticate_user(event=event)
+        await self.send(text_data=json.dumps(responce))
 
 
-        
+    @database_sync_to_async
+    def authenticate_user(self , event):
+        try:
+            account_id = Token.objects.get(key=event['Authorization']).user_id
+            self.user = Account.objects.get(user_id=account_id)
+            return {'message' : 'authentication is completed !', 'data' : self.user.email}
+        except:
+            return {'message' : 'invalid token'}
+
     @database_sync_to_async
     def create_message(self , event):
         print(event)
+        if self.user == None:
+            return {'message': 'authenticate needed.', "data":None}
+
         try:
             chat = Chat.objects.get(id=event['chat_id'])
         except:

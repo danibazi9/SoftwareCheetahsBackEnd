@@ -16,7 +16,9 @@ def on_close(ws):
     initiate()
 
 def on_open(ws):
-    token = int(input("input your token : "))
+    #token = input("input your token : ")
+    token = '8a492f3aef1f8abfaad5222a4f56a118ea1ca271'
+    ws.send(json.dumps({'type':'authenticate', 'Authorization': token}))
     print ("### Initiating new websocket connectipython my-websocket.pyon ###")
     def run(*args):
         for i in range(30000):
@@ -31,7 +33,7 @@ def on_open(ws):
 
 def initiate():
     websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("ws://localhost:8000/ws/api/chat/test/",
+    ws = websocket.WebSocketApp("ws://localhost:8000/ws/api/chat/1/",
         on_message = on_message,
         on_error = on_error,
         on_close = on_close)
