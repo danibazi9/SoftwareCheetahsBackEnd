@@ -57,6 +57,13 @@ def get_all_villas(request):
             documents_list.append(document.file.url)
         x['documents'] = documents_list
 
+        rules_list = []
+
+        for rule_id in x['rules']:
+            rule = Rule.objects.get(rule_id=rule_id)
+            rules_list.append(rule.text)
+        x['rules'] = rules_list
+
     return Response(data, status=status.HTTP_200_OK)
 
 
@@ -157,6 +164,8 @@ class UserVilla(APIView):
                 rule = Rule.objects.get(rule_id=rule_id)
                 rules_list.append(rule.text)
             data['rules'] = rules_list
+
+            data['user_id'] = self.request.user.user_id
 
             return Response(data, status=status.HTTP_200_OK)
         else:
@@ -403,6 +412,9 @@ def register_villa(request):
 @api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
 def get_most_reserved_city(request):
+    if 'number_of_city' not in request.GET:
+        return Response(f"Number_of_city: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
     number_of_villa = int(request.GET['number_of_city'])
 
     query = Q()

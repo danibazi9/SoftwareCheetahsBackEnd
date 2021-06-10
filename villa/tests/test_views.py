@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 from villa.models import *
 from account.models import Account
 
-
 client = Client()
 
 BASE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'tests')
@@ -404,7 +403,7 @@ class VillaSearchTest(TestCase):
             area=1,
             owner=owner,
             capacity=10,
-            max_capacity=10,
+            max_capacity=16
             postal_code='0123456789'
         )
 
@@ -412,50 +411,59 @@ class VillaSearchTest(TestCase):
             customer=customer,
             villa=v1,
             start_date=datetime.now(),
-            end_date=datetime.now() + timedelta(days=1)
+            end_date=datetime.now() + timedelta(days=1),
+            num_of_passengers=10,
+            total_cost=20001.25
         )
 
         Calendar.objects.create(
             customer=customer,
             villa=v1,
             start_date=datetime.now() + timedelta(days=3),
-            end_date=datetime.now() + timedelta(days=5)
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=4,
+            total_cost=55677.4
         )
 
         Calendar.objects.create(
             customer=customer,
             villa=v2,
             start_date=datetime.now() + timedelta(days=3),
-            end_date=datetime.now() + timedelta(days=5)
+            end_date=datetime.now() + timedelta(days=5),
+            num_of_passengers=13,
+            total_cost=1004455.25
         )
 
     def test_search_villa(self):
-        datas = [{'country':'Iran', 'number_of_villa':2, 'page':1},
-                 {'city':'Esfahan', 'number_of_villa':2, 'page':1},
-                 {'country':'Iran','city':'Tehran', 'number_of_villa':2, 'page':1}]
-                 
-        result_count = [2,2,1]
+        datas = [{'country': 'Iran', 'number_of_villa': 2, 'page': 1},
+                 {'city': 'Esfahan', 'number_of_villa': 2, 'page': 1},
+                 {'country': 'Iran', 'city': 'Tehran', 'number_of_villa': 2, 'page': 1}]
+
+        result_count = [2, 2, 1]
         for test in range(len(result_count)):
             response = client.get(
                 reverse('villa:search'),
-                data = datas[test],
+                data=datas[test],
             )
-            self.assertEquals(len(response.data['data']),result_count[test])
+            self.assertEquals(len(response.data['data']), result_count[test])
 
     def test_searchVilla_withDate(self):
-        datas = [{'country':'Iran', 'number_of_villa':2, 'page':1},
-                 {'city':'Esfahan', 'number_of_villa':2, 'page':1},
-                 {'country':'Iran','city':'Tehran', 'number_of_villa':2, 'page':1}]
-                 
-        result_count = [2,2,1]
+        datas = [
+            {'country': 'Iran', 'number_of_villa': 2, 'page': 1},
+            {'city': 'Esfahan', 'number_of_villa': 2, 'page': 1},
+            {'country': 'Iran', 'city': 'Tehran', 'number_of_villa': 2, 'page': 1}
+        ]
+
+        result_count = [2, 2, 1]
+
         for test in range(len(result_count)):
             response = client.get(
                 reverse('villa:search'),
-                data = datas[test],
+                data=datas[test],
             )
-            self.assertEquals(len(response.data['data']),result_count[test])
+            self.assertEquals(len(response.data['data']), result_count[test])
 
-            
+
 class CalendarTest(TestCase):
     def setUp(self):
         new_user = Account.objects.create(
@@ -557,7 +565,7 @@ class CalendarTest(TestCase):
         )
 
     def test_show_calendar(self):
-        tests = [{'villa_id':1}, {'villa_id':2}]
+        tests = [{'villa_id': 1}, {'villa_id': 2}]
         outputs = [5, 3]
 
         for test in range(len(tests)):
@@ -569,10 +577,9 @@ class CalendarTest(TestCase):
             self.assertEquals(len(responce.data['dates']), outputs[test])
 
     def test_invalid_show_calendar(self):
-        
         responce = client.get(
             reverse("villa:show_calendar"),
-            data={"villa_id":5},
+            data={"villa_id": 5},
             HTTP_AUTHORIZATION='Token {}'.format(self.valid_token)
         )
         self.assertEquals(responce.status_code, status.HTTP_404_NOT_FOUND)
@@ -582,7 +589,7 @@ class CalendarTest(TestCase):
             reverse('villa:show_most_popular_city'),
             HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
         )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED) 
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class RegisterVillaTest(TestCase):
@@ -620,6 +627,8 @@ class RegisterVillaTest(TestCase):
             'villa': self.new_villa.villa_id,
             'start_date': datetime.strftime(datetime.now() + timedelta(days=3), '%Y-%m-%d'),
             'end_date': datetime.strftime(datetime.now() + timedelta(days=6), '%Y-%m-%d'),
+            'num_of_passengers': 10,
+            'total_cost': 20000.5
         }
 
         self.invalid_register_villa = {
@@ -709,7 +718,9 @@ class RegisterVillaTest(TestCase):
             customer=self.new_user,
             villa=self.new_villa,
             start_date=datetime.now() + timedelta(days=3),
-            end_date=datetime.now() + timedelta(days=6)
+            end_date=datetime.now() + timedelta(days=6),
+            num_of_passengers=10,
+            total_cost=10222.02
         )
 
         response = client.post(
@@ -748,7 +759,7 @@ class RegisterVillaTest(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        
+
 class MostPopularCityTest(TestCase):
     def setUp(self) -> None:
         new_user = Account.objects.create(
@@ -911,26 +922,36 @@ class MostPopularCityTest(TestCase):
             reverse('villa:show_most_popular_city'),
             HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
         )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)      
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_invalid_requestParams(self):
+        response = client.get(
+            reverse('villa:show_most_popular_city'),
+            data={},
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_show_MostPopularCity(self):
         tests = [
-                    {'number_of_city':2},
-                    {'number_of_city':1},
-                    {'country':'USA', 'number_of_city':2},
-                    {'country':'Iran', 'state':'Tehran', 'number_of_city':2}
-                 ]
+            {'number_of_city': 0},
+            {'number_of_city': 2},
+            {'number_of_city': 1},
+            {'country': 'USA', 'number_of_city': 2},
+            {'country': 'Iran', 'state': 'Tehran', 'number_of_city': 2}
+        ]
         outputs = [
+            [],
             [
-                {'country':'Iran', 'state':'Esfahan', 'city':'Esfahan', 'no_villa':2},
-                {'country':'Iran', 'state':'Tehran', 'city':'Tehran', 'no_villa':1}   
+                {'country': 'Iran', 'state': 'Esfahan', 'city': 'Esfahan', 'no_villa': 2},
+                {'country': 'Iran', 'state': 'Tehran', 'city': 'Tehran', 'no_villa': 1}
             ],
             [
-                {'country':'Iran', 'state':'Esfahan', 'city':'Esfahan', 'no_villa':2}
+                {'country': 'Iran', 'state': 'Esfahan', 'city': 'Esfahan', 'no_villa': 2}
             ],
             [],
             [
-                {'country':'Iran', 'state':'Tehran', 'city':'Tehran', 'no_villa':1} 
+                {'country': 'Iran', 'state': 'Tehran', 'city': 'Tehran', 'no_villa': 1}
             ]
         ]
 
@@ -940,9 +961,9 @@ class MostPopularCityTest(TestCase):
                 data=tests[test],
                 HTTP_AUTHORIZATION='Token {}'.format(self.valid_token)
             )
-            self.assertListEqual(responce.data['data'],outputs[test])
+            self.assertListEqual(responce.data['data'], outputs[test])
 
-            
+
 class MostRegisteredVillasTest(TestCase):
     def setUp(self) -> None:
         new_user = Account.objects.create(
@@ -1063,11 +1084,19 @@ class MostRegisteredVillasTest(TestCase):
             reverse('villa:show_most_registered_villas'),
             HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
         )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)      
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_invalid_requestParams(self):
+        response = client.get(
+            reverse('villa:show_most_registered_villas'),
+            data={},
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_show_MostRegisterVillas(self):
-        tests = [{'number_of_villa':2}, {'number_of_villa':1}]
-        outputs = [[2,1], [2]]
+        tests = [{'number_of_villa': 2}, {'number_of_villa': 1}, {'number_of_villa': 0}]
+        outputs = [[2, 1], [2], []]
 
         for test in range(len(tests)):
             responce = client.get(
@@ -1078,7 +1107,7 @@ class MostRegisteredVillasTest(TestCase):
             result = [v['villa_id'] for v in responce.data['data']]
             self.assertEquals(result, outputs[test])
 
-            
+
 class MostRatedVillasTest(TestCase):
     def setUp(self) -> None:
         new_user = Account.objects.create(
@@ -1203,11 +1232,19 @@ class MostRatedVillasTest(TestCase):
             reverse('villa:show_most_registered_villas'),
             HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
         )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)      
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_invalid_requestParams(self):
+        response = client.get(
+            reverse('villa:show_most_registered_villas'),
+            data={},
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_show_MostRatedVillas(self):
-        tests = [{'number_of_villa':2}, {'number_of_villa':1}]
-        outputs = [[2,1], [2]]
+        tests = [{'number_of_villa': 2}, {'number_of_villa': 1}, {'number_of_villa': 0}]
+        outputs = [[2, 1], [2], []]
 
         for test in range(len(tests)):
             responce = client.get(
