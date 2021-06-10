@@ -19,10 +19,8 @@ eggs/
 lib/
 lib64/
 parts/
-media-cdn/
 static/
-live-static/
-media-cdn/
+media_cdn/
 media-root/
 media/
 sdist/
@@ -59,7 +57,7 @@ coverage.xml
 
 # Django stuff:
 *.log
-local_settings.py
+settings.py
 
 # Flask stuff:
 instance/

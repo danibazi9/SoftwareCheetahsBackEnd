@@ -388,7 +388,7 @@ class VillaSearchTest(TestCase):
             owner=owner,
             capacity=10,
             max_capacity=10,
-            postal_code='1234567800'
+            postal_code='1234567890'
         )
 
         v2 = Villa.objects.create(
@@ -404,6 +404,7 @@ class VillaSearchTest(TestCase):
             owner=owner,
             capacity=10,
             max_capacity=16
+            postal_code='0123456789'
         )
 
         Calendar.objects.create(
