@@ -165,6 +165,8 @@ class UserVilla(APIView):
                 rules_list.append(rule.text)
             data['rules'] = rules_list
 
+            data['user_id'] = self.request.user.user_id
+
             return Response(data, status=status.HTTP_200_OK)
         else:
             return Response("Villa_id: None, BAD REQUEST", status=status.HTTP_400_BAD_REQUEST)
