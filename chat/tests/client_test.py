@@ -4,8 +4,7 @@ import json
 import _thread
 
 def on_message(ws, message):
-    pass
-    #print ('message : ', message)
+    print ('message : ', message)
 
 def on_error(ws, error):
     print ("eroror:", error)
@@ -17,14 +16,19 @@ def on_close(ws):
     initiate()
 
 def on_open(ws):
-    user = input("input your name : ")
+    #token = input("input your token : ")
+    token = '8a492f3aef1f8abfaad5222a4f56a118ea1ca271'
+    ws.send(json.dumps({'type':'authenticate', 'Authorization': token}))
     print ("### Initiating new websocket connectipython my-websocket.pyon ###")
     def run(*args):
         for i in range(30000):
             # Sending message with 1 second intervall
             time.sleep(1)
             message = input("input your message : ")
-            ws.send(json.dumps({'message': message, 'type':'chat.message', 'user':user}))
+            #ws.send(json.dumps({'message': message, 'type':'create'}))
+            #ws.send(json.dumps({'message_id': int(message), 'type':'delete'}))
+            ws.send(json.dumps({'message_id': 11, 'type':'update', 'text':message}))
+            ws.send(json.dumps({'type':'fetch'}))
         time.sleep(1)
         ws.close()
         print ("thread terminating...")
@@ -32,7 +36,7 @@ def on_open(ws):
 
 def initiate():
     websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("ws://localhost:8000/ws/api/chat/test/",
+    ws = websocket.WebSocketApp("ws://localhost:8000/ws/api/chat/1/",
         on_message = on_message,
         on_error = on_error,
         on_close = on_close)
