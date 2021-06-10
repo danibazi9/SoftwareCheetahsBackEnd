@@ -391,7 +391,7 @@ def register_villa(request):
         return Response(f"ERROR: This period has overlapped with other registration!",
                         status=status.HTTP_400_BAD_REQUEST)
 
-    serializer = CalendarSerializer(data=data)
+    serializer = RegisterVillaSerializer(data=data)
     if serializer.is_valid():
         villa = serializer.save()
         return Response(f"Villa with villa_id {villa.villa_id} registered successfully!",
