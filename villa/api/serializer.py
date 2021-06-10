@@ -48,4 +48,11 @@ class CalendarSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Calendar
-        fields = ['start_date','end_date']
+        fields = ['start_date', 'end_date']
+
+
+class RegisterVillaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Calendar
+        fields = '__all__'
