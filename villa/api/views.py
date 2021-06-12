@@ -472,3 +472,15 @@ def show_most_rated_villas(request):
         entry['rate__avg'] = v['rate__avg']
         data.append(entry)
     return Response({'message':'find most rated successfully' ,'data':data}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST', ])
+@permission_classes((IsAuthenticated,))
+def add_rate(request):
+    costumer = request.user
+
+    if 'reserve' in request.data.keys():
+        pass
+    else:
+        return Response({'message': 'invalid body request'},
+                         status=status.HTTP_400_BAD_REQUEST)

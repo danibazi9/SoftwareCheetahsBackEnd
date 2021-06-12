@@ -1253,3 +1253,74 @@ class MostRatedVillasTest(TestCase):
             )
             result = [v['villa_id'] for v in responce.data['data']]
             self.assertEquals(result, outputs[test])
+
+
+class AddVillaRateTest(TestCase):
+    def setUp(self) -> None:
+
+        owner = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+        owner.username = owner.email
+        owner.save()
+
+        customer = Account.objects.create(
+            first_name='Sadegh',
+            last_name='Jafari',
+            email='sadeghjafari@gmail.com',
+            phone_number='+989152147501',
+            gender='Male',
+            password='123456'
+        )
+        customer.username = customer.email
+        customer.save()
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=customer)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+
+        v1 = Villa.objects.create(
+            name='test1',
+            type='Urban',
+            price_per_night=10,
+            country='Iran',
+            city='Esfahan',
+            address='Iran Esfahan',
+            latitude=100,
+            longitude=100,
+            area=1,
+            owner=owner,
+            capacity=10,
+            max_capacity=20,
+            postal_code='1234'
+        )
+
+        Calendar.objects.create(
+            customer=customer,
+            villa=v1,
+            start_date=datetime.now(),
+            end_date=datetime.now() + timedelta(days=1),
+            num_of_passengers=10,
+            total_cost=50,
+            rate=3
+        )
+
+
+    def test_invalid_token(self):
+        response = client.post(
+            reverse('villa:add_rate'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_invalid_requestParams(self):
+        response = client.post(
+            reverse('villa:add_rate'),
+            data={},
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
