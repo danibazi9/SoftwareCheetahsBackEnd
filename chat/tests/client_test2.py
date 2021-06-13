@@ -28,7 +28,7 @@ def on_open(ws):
             ws.send(json.dumps({'message': message, 'type':'create', 'parent_message':"33"}))
             #ws.send(json.dumps({'message_id': int(message), 'type':'update'}))
             #ws.send(json.dumps({'message_id': 11, 'text':message, 'type':'delete'}))
-            #ws.send(json.dumps({'type':'fetch'}))
+            ws.send(json.dumps({'type':'fetch'}))
         time.sleep(1)
         ws.close()
         print ("thread terminating...")
