@@ -17,7 +17,7 @@ def on_close(ws):
 
 def on_open(ws):
     #token = input("input your token : ")
-    token = '8a492f3aef1f8abfaad5222a4f56a118ea1ca271'
+    token = '1b18c5dfc34923b4cb468d6dc4ba20bbc5192f3e'
     ws.send(json.dumps({'Authorization': token, 'type':'authenticate'}))
     print ("### Initiating new websocket connectipython my-websocket.pyon ###")
     def run(*args):
