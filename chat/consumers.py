@@ -4,6 +4,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 import datetime
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
+from django.http import response
 
 from .models import Message, Chat
 from account.models import Account
@@ -38,38 +39,37 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # Receive message from WebSocket
     async def receive(self, text_data):
         data = json.loads(text_data)
+        response = await self.handle_order(data)
 
         # Send message to room group
         await self.channel_layer.group_send(
             self.room_group_name,
-            data,
+            response,
         )
 
-
-    async def update(self, event):
-        responce = await self.update_message(event)
-        await self.send(text_data=json.dumps(responce))
-
-
-    async def fetch(self, event):
-        responce = await self.fetch_message(event)
-        await self.send(text_data=json.dumps(responce))
+    # Receive message from room group
+    async def chat_message(self, event):
+       # Send message to WebSocket
+        await self.send(text_data=json.dumps(event))
+       
 
 
-    async def create(self, event):
-        responce = await self.create_message(event=event)
-        await self.send(text_data=json.dumps(responce))
 
+    async def handle_order(self, event):
+        if event['type'] == 'update':
+            responce = await self.update_message(event)
+        elif event['type'] == 'fetch':
+            responce = await self.fetch_message(event)
+        elif event['type'] == 'create':
+            responce = await self.create_message(event)
+        elif event['type'] == 'delete':
+            responce = await self.delete_message(event)
+        elif event['type'] == 'authenticate':
+            responce = await self.authenticate_user(event)
+        responce['type'] = 'chat_message'
 
-    async def delete(self, event):
-        responce = await self.delete_message(event=event)
-        await self.send(text_data=json.dumps(responce))
-
-
-    async def authenticate(self, event):
-        responce = await self.authenticate_user(event=event)
-        await self.send(text_data=json.dumps(responce))
-
+        return responce
+ 
 
     @sync_to_async
     def get_chat(self, chat_id):
@@ -93,7 +93,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         if 'parent_message' in event.keys():
             try:
-                parent_message = Message.objects.get(id=event['parent_message'])
+                parent_message = Message.objects.get(message_id=event['parent_message'])
             except:
                 return {'message': f"message {event['parent_message']} does not exist", "data":None}
         else:
