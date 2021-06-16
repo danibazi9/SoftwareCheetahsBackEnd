@@ -8,6 +8,8 @@ from chat.models import Chat, Message
 from .serializer import ChatAccountSerializer, MessageSerializer
 from account.models import Account
 
+from datetime import datetime
+
 @api_view(['POST'])
 def add_chat(request):
     user = request.user
@@ -89,4 +91,39 @@ def show_chat(request):
         data.append(d)
 
     return Response({'message':'show chats successfuly', 'data':data},
+                     status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def upload_file(request):
+    user = request.user
+    if 'chat_id' in request.data.keys():
+        try:
+            chat = Chat.objects.get(chat_id=request.data['chat_id'])
+        except:
+            return Response({'message':'This chat does not exist'},
+                            status=status.HTTP_404_NOT_FOUND)
+    else:
+        return Response({'message':'chat_id field needed'},
+                         status=status.HTTP_400_BAD_REQUEST)
+
+    if 'image' in request.FILES.keys():
+        image = request.FILES['image']
+    else:
+        image = None
+    if 'file' in request.FILES.keys():
+        file = request.FILES['file']
+    else:
+        file = None
+        
+    message = Message.objects.create(
+        chat=chat,
+        owner=user,
+        image=image,
+        file=file,
+        time = datetime.now()
+    )
+
+    serializer = MessageSerializer(message)
+    message.save()
+    return Response({'message':'upload image or file successfully', 'data':serializer.data},
                      status=status.HTTP_200_OK)
