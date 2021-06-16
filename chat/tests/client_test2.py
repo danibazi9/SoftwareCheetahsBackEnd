@@ -17,7 +17,7 @@ def on_close(ws):
 
 def on_open(ws):
     #token = input("input your token : ")
-    token = '8a492f3aef1f8abfaad5222a4f56a118ea1ca271'
+    token = '1b18c5dfc34923b4cb468d6dc4ba20bbc5192f3e'
     ws.send(json.dumps({'Authorization': token, 'type':'authenticate'}))
     print ("### Initiating new websocket connectipython my-websocket.pyon ###")
     def run(*args):
@@ -28,7 +28,7 @@ def on_open(ws):
             ws.send(json.dumps({'message': message, 'type':'create', 'parent_message':"33"}))
             #ws.send(json.dumps({'message_id': int(message), 'type':'update'}))
             #ws.send(json.dumps({'message_id': 11, 'text':message, 'type':'delete'}))
-            #ws.send(json.dumps({'type':'fetch'}))
+            ws.send(json.dumps({'type':'fetch'}))
         time.sleep(1)
         ws.close()
         print ("thread terminating...")

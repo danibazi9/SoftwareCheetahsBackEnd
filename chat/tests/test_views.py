@@ -1,169 +1,193 @@
-import asyncio
-from urllib.parse import unquote
+from chat.models import Chat, Message
+import os
+import json
 
-import pytest
-from django.urls import path
+from django.test import TestCase, Client
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.authtoken.models import Token
 
-from channels.consumer import AsyncConsumer
-from channels.generic.websocket import WebsocketConsumer
-from channels.routing import URLRouter
-from channels.testing import HttpCommunicator, WebsocketCommunicator
+from django.conf import settings
+import tempfile
+from datetime import date, datetime, timedelta
 
+from villa.models import *
+from account.models import Account
 
-class SimpleHttpApp(AsyncConsumer):
-    """
-    Barebones HTTP ASGI app for testing.
-    """
+client = Client()
 
-    async def http_request(self, event):
-        assert self.scope["path"] == "/test/"
-        assert self.scope["method"] == "GET"
-        assert self.scope["query_string"] == b"foo=bar"
-        await self.send({"type": "http.response.start", "status": 200, "headers": []})
-        await self.send({"type": "http.response.body", "body": b"test response"})
+class ShowChatsTest(TestCase):
 
+    def setUp(self) -> None:
+        user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+        user.username = user.email
+        user.save()
 
-@pytest.mark.asyncio
-async def test_http_communicator():
-    """
-    Tests that the HTTP communicator class works at a basic level.
-    """
-    communicator = HttpCommunicator(SimpleHttpApp(), "GET", "/test/?foo=bar")
-    response = await communicator.get_response()
-    assert response["body"] == b"test response"
-    assert response["status"] == 200
+        self.valid_token, self.created = Token.objects.get_or_create(user=user)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
 
+        contact = Account.objects.create(
+            first_name='Sadegh',
+            last_name='Jafari',
+            email='sadeghjafari@gmail.com',
+            phone_number='+989152147501',
+            gender='Male',
+            password='123456'
+        )
+        contact.username = contact.email
+        contact.save()
 
-class SimpleWebsocketApp(WebsocketConsumer):
-    """
-    Barebones WebSocket ASGI app for testing.
-    """
+        user2 = Account.objects.create(
+            first_name='Saleh',
+            last_name='Jafari',
+            email='sadeghjafari5528@gmail.com',
+            phone_number='+989152147500',
+            gender='Male',
+            password='123456'
+        )
+        user2.username = user2.email
+        user2.save()
 
-    def connect(self):
-        assert self.scope["path"] == "/testws/"
-        self.accept()
+        self.valid_token2, self.created2 = Token.objects.get_or_create(user=user2)
 
-    def receive(self, text_data=None, bytes_data=None):
-        self.send(text_data=text_data, bytes_data=bytes_data)
+        chat1 = Chat.objects.create(
+            account1 = user,
+            account2 = contact
+        )
 
+        chat2 = Chat.objects.create(
+            account1 = user2,
+            account2 = contact
+        )
 
-class ErrorWebsocketApp(WebsocketConsumer):
-    """
-    Barebones WebSocket ASGI app for error testing.
-    """
+        Message.objects.create(
+            chat=chat1,
+            owner=user,
+            text='hello',
+            time=datetime.now()
+        )
 
-    def receive(self, text_data=None, bytes_data=None):
-        pass
+    def test_invalid_token(self):
+        response = client.get(
+            reverse('chat:show_chat'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_with_last_message(self):
+        response = client.get(
+            reverse('chat:show_chat'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
 
-class KwargsWebSocketApp(WebsocketConsumer):
-    """
-    WebSocket ASGI app used for testing the kwargs arguments in the url_route.
-    """
+        data = response.data
+        self.assertEqual('hello', data['data'][0]['last_message']['text'])
 
-    def connect(self):
-        self.accept()
-        self.send(text_data=self.scope["url_route"]["kwargs"]["message"])
+    def test_null_last_message(self):
+        response = client.get(
+            reverse('chat:show_chat'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token2),
+        )
 
-
-@pytest.mark.django_db
-@pytest.mark.asyncio
-async def test_websocket_communicator():
-    """
-    Tests that the WebSocket communicator class works at a basic level.
-    """
-    communicator = WebsocketCommunicator(SimpleWebsocketApp(), "/testws/")
-    # Test connection
-    connected, subprotocol = await communicator.connect()
-    assert connected
-    assert subprotocol is None
-    # Test sending text
-    await communicator.send_to(text_data="hello")
-    response = await communicator.receive_from()
-    assert response == "hello"
-    # Test sending bytes
-    await communicator.send_to(bytes_data=b"w\0\0\0")
-    response = await communicator.receive_from()
-    assert response == b"w\0\0\0"
-    # Test sending JSON
-    await communicator.send_json_to({"hello": "world"})
-    response = await communicator.receive_json_from()
-    assert response == {"hello": "world"}
-    # Close out
-    await communicator.disconnect()
-
-
-@pytest.mark.django_db
-@pytest.mark.asyncio
-async def test_websocket_application():
-    """
-    Tests that the WebSocket communicator class works with the
-    URLRoute application.
-    """
-    application = URLRouter([path("testws/<str:message>/", KwargsWebSocketApp())])
-    communicator = WebsocketCommunicator(application, "/testws/test/")
-    connected, subprotocol = await communicator.connect()
-    # Test connection
-    assert connected
-    assert subprotocol is None
-    message = await communicator.receive_from()
-    assert message == "test"
-    await communicator.disconnect()
+        data = response.data
+        self.assertEqual(None, data['data'][0]['last_message'])
 
 
-@pytest.mark.django_db
-@pytest.mark.asyncio
-async def test_timeout_disconnect():
-    """
-    Tests that disconnect() still works after a timeout.
-    """
-    communicator = WebsocketCommunicator(ErrorWebsocketApp(), "/testws/")
-    # Test connection
-    connected, subprotocol = await communicator.connect()
-    assert connected
-    assert subprotocol is None
-    # Test sending text (will error internally)
-    await communicator.send_to(text_data="hello")
-    with pytest.raises(asyncio.TimeoutError):
-        await communicator.receive_from()
-    # Close out
-    await communicator.disconnect()
+class AddChatTest(TestCase):
 
+    def setUp(self) -> None:
+        user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+        user.username = user.email
+        user.save()
 
-class ConnectionScopeValidator(WebsocketConsumer):
-    """
-    Tests ASGI specification for the connection scope.
-    """
+        self.valid_token, self.created = Token.objects.get_or_create(user=user)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
 
-    def connect(self):
-        assert self.scope["type"] == "websocket"
-        # check if path is a unicode string
-        assert isinstance(self.scope["path"], str)
-        # check if path has percent escapes decoded
-        assert self.scope["path"] == unquote(self.scope["path"])
-        # check if query_string is a bytes sequence
-        assert isinstance(self.scope["query_string"], bytes)
-        self.accept()
+        contact = Account.objects.create(
+            first_name='Sadegh',
+            last_name='Jafari',
+            email='sadeghjafari@gmail.com',
+            phone_number='+989152147501',
+            gender='Male',
+            password='123456'
+        )
+        contact.username = contact.email
+        contact.save()
 
+        contact2 = Account.objects.create(
+            first_name='Saleh',
+            last_name='Jafari',
+            email='sadeghjafari5528@gmail.com',
+            phone_number='+989152147500',
+            gender='Male',
+            password='123456'
+        )
+        contact2.username = contact2.email
+        contact2.save()
 
-paths = [
-    "user:pass@example.com:8080/p/a/t/h?query=string#hash",
-    "wss://user:pass@example.com:8080/p/a/t/h?query=string#hash",
-    (
-        "ws://www.example.com/%E9%A6%96%E9%A1%B5/index.php?"
-        "foo=%E9%A6%96%E9%A1%B5&spam=eggs"
-    ),
-]
+        chat2 = Chat.objects.create(
+            account1 = user,
+            account2 = contact2
+        )
 
+    def test_invalid_token(self):
+        response = client.post(
+            reverse('chat:add_chat'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-@pytest.mark.django_db
-@pytest.mark.asyncio
-@pytest.mark.parametrize("path", paths)
-async def test_connection_scope(path):
-    """
-    Tests ASGI specification for the the connection scope.
-    """
-    communicator = WebsocketCommunicator(ConnectionScopeValidator(), path)
-    connected, _ = await communicator.connect()
-    assert connected
-    await communicator.disconnect()
+    def test_invalid_request_body(self):
+        response = client.post(
+            reverse('chat:add_chat'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+            data = {}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_contact_does_not_exist(self):
+        response = client.post(
+            reverse('chat:add_chat'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+            data = {'contact':5}
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_user_and_contact_is_equal(self):
+        response = client.post(
+            reverse('chat:add_chat'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+            data = {'contact':1}
+        )
+        self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
+
+    def test_chat_is_already_exist(self):
+        response = client.post(
+            reverse('chat:add_chat'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+            data = {'contact':3}
+        )
+        self.assertEqual(response.status_code, status.HTTP_208_ALREADY_REPORTED)
+
+    def test_create_new_chat(self):
+        response = client.post(
+            reverse('chat:add_chat'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+            data = {'contact':2}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+

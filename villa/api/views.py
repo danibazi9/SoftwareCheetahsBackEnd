@@ -463,14 +463,32 @@ def show_most_rated_villas(request):
         return Response(f"Number_of_villa: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
     
     number_of_villa = int(request.GET['number_of_villa'])
-    most_rated = Calendar.objects.values('villa').order_by().annotate(Avg('rate')).order_by('rate__avg')[::-1][:number_of_villa]
-    
-    data = []
-    for v in most_rated:
-        villa = Villa.objects.get(villa_id=v['villa'])
-        serializer = VillaSearchSerializer(villa)
-        
-        entry = serializer.data
-        entry['rate__avg'] = v['rate__avg']
-        data.append(entry)
-    return Response({'message':'find most rated successfully' ,'data':data}, status=status.HTTP_200_OK)
+    most_rated = Villa.objects.filter().order_by('rate')[::-1][:number_of_villa]
+    serializer = VillaSearchSerializer(many=True, data=most_rated)
+    serializer.is_valid()
+    return Response({'message':'find most rated successfully' ,'data':serializer.data},
+                     status=status.HTTP_200_OK)
+
+
+@api_view(['POST', ])
+@permission_classes((IsAuthenticated,))
+def add_rate(request):
+    costumer = request.user
+    if 'reserve_id' in request.data.keys() and 'rate' in request.data.keys():
+        try:
+            reserve = Calendar.objects.get(calendar_id=int(request.POST['reserve_id']))
+            reserve.rate = int(request.POST['rate'])
+            reserve.save()
+            villa = reserve.villa
+            villa.rate = ((villa.rate * villa.no_rate) + reserve.rate) / (villa.no_rate + 1)
+            villa.no_rate += 1
+            villa.save()
+            serializer = VillaSearchSerializer(villa)
+            return Response({'message':'add rate successfully','data':serializer.data},
+                                status=status.HTTP_200_OK)
+        except:
+            return Response({'message':f"reserve_id {request.POST['reserve_id']} does not exist"},
+                            status=status.HTTP_404_NOT_FOUND)
+    else:
+        return Response({'message': 'invalid body request'},
+                         status=status.HTTP_400_BAD_REQUEST)
