@@ -13,9 +13,9 @@ from datetime import datetime
 @api_view(['POST'])
 def add_chat(request):
     user = request.user
-    if 'contact' in request.POST.keys():
+    if 'contact' in request.data.keys():
         try:
-            contact = Account.objects.get(user_id=request.POST['contact'])
+            contact = Account.objects.get(user_id=request.data['contact'])
         except:
             return Response({'message':'contact does not exist'},
                               status=status.HTTP_404_NOT_FOUND)

@@ -41,11 +41,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         response = await self.handle_order(data)
 
+        if data['type'] not in ['fetch', 'authenticate']:
         # Send message to room group
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            response,
-        )
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                response,
+            )
+            
+        else:
+            await self.send(text_data=json.dumps(response))
 
     # Receive message from room group
     async def chat_message(self, event):
