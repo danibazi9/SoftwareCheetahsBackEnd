@@ -75,6 +75,8 @@ class Villa(models.Model):
     documents = models.ManyToManyField(Document, blank=True)
     rules = models.ManyToManyField(Rule, blank=True)
     visible = models.BooleanField(default=True)
+    rate = models.FloatField(null=True, blank=True)
+    no_rate = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name + ", Owner: " + self.owner.first_name + " " + self.owner.last_name
