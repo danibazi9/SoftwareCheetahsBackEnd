@@ -64,7 +64,7 @@ class Villa(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     area = models.IntegerField()
-    owner = models.ForeignKey(Account, on_delete=models.CASCADE)
+    owner = models.ForeignKey(Account, related_name='villa', on_delete=models.CASCADE)
     capacity = models.IntegerField()
     max_capacity = models.IntegerField()
     number_of_bathrooms = models.IntegerField(default=1)
@@ -77,6 +77,7 @@ class Villa(models.Model):
     visible = models.BooleanField(default=True)
     rate = models.FloatField(null=True, blank=True)
     no_rate = models.IntegerField(default=0)
+    likes = models.ManyToManyField(Account, related_name='likes', blank=True)
 
     def __str__(self):
         return self.name + ", Owner: " + self.owner.first_name + " " + self.owner.last_name
