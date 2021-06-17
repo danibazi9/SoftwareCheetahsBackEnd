@@ -204,7 +204,6 @@ class ProfilePictureTest(TestCase):
 
     def test_update_account_image(self):
         import os
-        print('directory : ', os.getcwd())
         image = open("account/tests/image.txt","r")
         data = {'base64': image.read()}
         image.close()

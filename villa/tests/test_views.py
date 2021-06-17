@@ -438,7 +438,7 @@ class VillaSearchTest(TestCase):
                  {'city': 'Esfahan', 'number_of_villa': 2, 'page': 1},
                  {'country': 'Iran', 'city': 'Tehran', 'number_of_villa': 2, 'page': 1}]
 
-        result_count = [2, 2, 1]
+        result_count = [2, 1, 1]
         for test in range(len(result_count)):
             response = client.get(
                 reverse('villa:search'),
@@ -453,7 +453,7 @@ class VillaSearchTest(TestCase):
             {'country': 'Iran', 'city': 'Tehran', 'number_of_villa': 2, 'page': 1}
         ]
 
-        result_count = [2, 2, 1]
+        result_count = [2, 1, 1]
 
         for test in range(len(result_count)):
             response = client.get(
