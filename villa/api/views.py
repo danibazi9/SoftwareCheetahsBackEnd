@@ -15,19 +15,10 @@ from villa.api.serializer import *
 from villa.models import *
 
 
-@api_view(['GET', ])
-@permission_classes((IsAuthenticated,))
-def get_all_villas(request):
-    all_villas = Villa.objects.filter(visible=True)
+def add_additional_info(villa_data, user_id):
+    final_data = villa_data
 
-    my_flag = request.query_params.get('me', None)
-    if my_flag is not None:
-        all_villas = Villa.objects.filter(owner=request.user, visible=True)
-
-    serializer = VillaSerializer(all_villas, many=True)
-    data = json.loads(json.dumps(serializer.data))
-
-    for x in data:
+    for x in final_data:
         owner = Account.objects.get(user_id=x['owner'])
         x['owner'] = owner.__str__()
         x['owner_image'] = None
@@ -63,14 +54,29 @@ def get_all_villas(request):
             rules_list.append(rule.text)
         x['rules'] = rules_list
 
-        if request.user.user_id in x['likes']:
+        if user_id in x['likes']:
             x['like'] = True
         else:
             x['like'] = False
 
         del x['likes']
 
-    return Response(data, status=status.HTTP_200_OK)
+    return final_data
+
+
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def get_all_villas(request):
+    all_villas = Villa.objects.filter(visible=True)
+
+    my_flag = request.query_params.get('me', None)
+    if my_flag is not None:
+        all_villas = Villa.objects.filter(owner=request.user, visible=True)
+
+    serializer = VillaSerializer(all_villas, many=True)
+    data = json.loads(json.dumps(serializer.data))
+
+    return Response(add_additional_info(data, request.user.user_id), status=status.HTTP_200_OK)
 
 
 @api_view(['POST', ])
@@ -536,3 +542,14 @@ def like_villa(request):
         return Response("Successfully disliked!", status=status.HTTP_200_OK)
     else:
         return Response("Like: BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def get_favourite_villas(request):
+    favourite_villas = Villa.objects.filter(likes__user_id=request.user.user_id)
+
+    serializer = VillaSerializer(favourite_villas, many=True)
+    data = json.loads(json.dumps(serializer.data))
+
+    return Response(add_additional_info(data, request.user.user_id), status=status.HTTP_200_OK)
