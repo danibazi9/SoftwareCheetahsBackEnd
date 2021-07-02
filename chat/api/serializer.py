@@ -8,7 +8,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ['message_id', 'chat', 'owner', 'text' , 'parent_message', 'ctime']
+        fields = ['message_id', 'chat', 'owner', 'image', 'file', 'text' , 'parent_message', 'ctime']
 
     def get_ctime(self, message):
         return message.time.ctime()

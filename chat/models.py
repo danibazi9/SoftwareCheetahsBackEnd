@@ -14,14 +14,16 @@ class Chat(models.Model):
 class Message(models.Model):
     message_id = models.AutoField(primary_key=True)
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='chats/images/', null=True)
-    file = models.FileField(upload_to='chats/documents/', null=True)
-    owner = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True)
-    text = models.TextField()
+    image = models.ImageField(upload_to='chats/images/', null=True, blank=True)
+    file = models.FileField(upload_to='chats/documents/', null=True, blank=True)
+    owner = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
+    text = models.TextField(null=True, blank=True)
     parent_message = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL)
     time = models.DateTimeField(db_index=True)
 
     def __str__(self):
-        return self.owner.__str__() + ": " + self.text
-
+        if self.text != None:
+            return self.owner.__str__() + ": " + self.text
+        else:
+            return self.owner.__str__() + ": " + '--null--'
 
