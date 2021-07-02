@@ -66,6 +66,28 @@ def add_additional_info(villa_data, user_id):
 
 @api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
+def get_user_villas(request):
+    hosted = request.query_params.get('hosted', None)
+    reserved = request.query_params.get('reserved', None)
+
+    if hosted is not None and reserved is None:
+        villas = Villa.objects.filter(owner=request.user, visible=True)
+    elif reserved is not None and hosted is None:
+        villas_id_list = list(
+            Calendar.objects.filter(customer__user_id=request.user.user_id).values_list('villa', flat=True)
+        )
+        villas = Villa.objects.filter(villa_id__in=villas_id_list)
+    else:
+        return Response("hosted/reserved: BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = VillaSerializer(villas, many=True)
+    data = json.loads(json.dumps(serializer.data))
+
+    return Response(add_additional_info(data, request.user.user_id), status=status.HTTP_200_OK)
+
+
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
 def get_all_villas(request):
     all_villas = Villa.objects.filter(visible=True)
 

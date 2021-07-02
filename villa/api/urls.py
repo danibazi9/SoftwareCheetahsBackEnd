@@ -5,6 +5,7 @@ app_name = 'villa'
 
 urlpatterns = [
     path('user/all/', views.get_all_villas, name='get_all_villas'),
+    path('user/me/', views.get_user_villas, name='get_user_villas'),
     path('user/', views.UserVilla.as_view(), name='villa_apis'),
     path('user/likes/', views.get_favourite_villas, name='favourite_villas'),
     path('user/images/', views.upload_image, name='upload_image'),
