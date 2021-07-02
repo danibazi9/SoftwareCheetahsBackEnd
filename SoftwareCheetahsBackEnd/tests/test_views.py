@@ -29,11 +29,23 @@ class PushNotificationTest(TestCase):
         self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
 
         self.valid_push_notif = {
-            'token': 'dfsfsdf@345hfdrfbgnntfgFhygvdrtnfdsf%5d4'
+            'token': 'dfsfsdf@345hfdrfbgnntfgFhygvdrtnfdsf%5d4',
+            'message': 'salaaaaaaam',
+            'title': 'title'
         }
 
         self.invalid_push_notif = {
-            'tok': 'dfdghjmnbvcxs'
+            'tok': 'dfsfsdf@345hfdrfbgnntfgFhygvdrtnfdsf%5d4',
+        }
+
+        self.invalid_push_notif2 = {
+            'token': 'dfsfsdf@345hfdrfbgnntfgFhygvdrtnfdsf%5d4',
+            'message': 'salaaaaaaam',
+        }
+
+        self.invalid_push_notif3 = {
+            'tok': 'dfdghjmnbvcxs',
+            'title': 'title'
         }
 
     def test_add_valid_villa(self):
@@ -48,6 +60,20 @@ class PushNotificationTest(TestCase):
         response = client.post(
             reverse('fcm-push-notification'),
             data=self.invalid_push_notif,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = client.post(
+            reverse('fcm-push-notification'),
+            data=self.invalid_push_notif2,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = client.post(
+            reverse('fcm-push-notification'),
+            data=self.invalid_push_notif3,
             HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

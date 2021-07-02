@@ -21,6 +21,8 @@ class ChatTest(TestCase):
             gender='Male',
             password='123456'
         )
+        self.account1.username = self.account1.email
+        self.account1.save()
 
         self.account2 = Account.objects.create(
             first_name='Sadegh',
@@ -30,6 +32,8 @@ class ChatTest(TestCase):
             gender='Male',
             password='123456'
         )
+        self.account2.username = self.account2.email
+        self.account2.save()
 
         self.chat = Chat.objects.create(
             account1=self.account1,
@@ -57,6 +61,8 @@ class MessageTest(TestCase):
             gender='Male',
             password='123456'
         )
+        self.account1.username = self.account1.email
+        self.account1.save()
 
         self.account2 = Account.objects.create(
             first_name='Sadegh',
@@ -66,19 +72,20 @@ class MessageTest(TestCase):
             gender='Male',
             password='123456'
         )
+        self.account2.username = self.account2.email
+        self.account2.save()
 
         self.chat = Chat.objects.create(
             account1=self.account1,
             account2=self.account2
         )
-
         self.time = datetime.now(tz=pytz.timezone('UTC'))
 
         self.message = Message.objects.create(
             chat=self.chat,
             owner=self.account1,
             text="hello Sadegh",
-            parentMessage=None,
+            parent_message=None,
             time=self.time
         )
 
@@ -96,7 +103,7 @@ class MessageTest(TestCase):
 
     def test_parentMessage(self):
         message = Message.objects.get(message_id=self.message.message_id)
-        self.assertEqual(message.parentMessage, None)
+        self.assertEqual(message.parent_message, None)
 
     def test_time(self):
         message = Message.objects.get(message_id=self.message.message_id)

@@ -18,8 +18,16 @@ def fcm_push_notifications(request):
                                                               cloud_message_type="FCM",
                                                               user=request.user)
 
-        fcm_device.send_message("This is a test notification",
-                                title="New Notification")
+        if 'message' not in request.data:
+            return Response(f"Message: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
+        if 'title' not in request.data:
+            return Response(f"Title: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
+        message = request.data['message']
+        title = request.data['title']
+
+        fcm_device.send_message(message=message, title=title)
     except Exception as e:
         return Response(f"ERROR: {e}", status=status.HTTP_400_BAD_REQUEST)
 

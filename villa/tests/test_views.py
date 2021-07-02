@@ -388,7 +388,7 @@ class VillaSearchTest(TestCase):
             owner=owner,
             capacity=10,
             max_capacity=10,
-            postal_code='1234567800'
+            postal_code='1234567890'
         )
 
         v2 = Villa.objects.create(
@@ -403,7 +403,8 @@ class VillaSearchTest(TestCase):
             area=1,
             owner=owner,
             capacity=10,
-            max_capacity=16
+            max_capacity=16,
+            postal_code='0123456789'
         )
 
         Calendar.objects.create(
@@ -438,7 +439,7 @@ class VillaSearchTest(TestCase):
                  {'city': 'Esfahan', 'number_of_villa': 2, 'page': 1},
                  {'country': 'Iran', 'city': 'Tehran', 'number_of_villa': 2, 'page': 1}]
 
-        result_count = [2, 2, 1]
+        result_count = [2, 1, 1]
         for test in range(len(result_count)):
             response = client.get(
                 reverse('villa:search'),
@@ -453,7 +454,7 @@ class VillaSearchTest(TestCase):
             {'country': 'Iran', 'city': 'Tehran', 'number_of_villa': 2, 'page': 1}
         ]
 
-        result_count = [2, 2, 1]
+        result_count = [2, 1, 1]
 
         for test in range(len(result_count)):
             response = client.get(
@@ -1158,7 +1159,8 @@ class MostRatedVillasTest(TestCase):
             owner=owner,
             capacity=10,
             max_capacity=20,
-            postal_code='1234'
+            postal_code='1234',
+            rate=3
         )
 
         v2 = Villa.objects.create(
@@ -1174,56 +1176,8 @@ class MostRatedVillasTest(TestCase):
             owner=owner,
             capacity=10,
             max_capacity=20,
-            postal_code='1235'
-        )
-
-        Calendar.objects.create(
-            customer=customer,
-            villa=v1,
-            start_date=datetime.now(),
-            end_date=datetime.now() + timedelta(days=1),
-            num_of_passengers=10,
-            total_cost=50,
-            rate=3
-        )
-
-        Calendar.objects.create(
-            customer=customer,
-            villa=v1,
-            start_date=datetime.now() + timedelta(days=3),
-            end_date=datetime.now() + timedelta(days=5),
-            num_of_passengers=5,
-            total_cost=40
-        )
-
-        Calendar.objects.create(
-            customer=customer,
-            villa=v2,
-            start_date=datetime.now() + timedelta(days=3),
-            end_date=datetime.now() + timedelta(days=5),
-            num_of_passengers=4,
-            total_cost=100,
-            rate=1
-        )
-
-        Calendar.objects.create(
-            customer=customer,
-            villa=v2,
-            start_date=datetime.now() + timedelta(days=3),
-            end_date=datetime.now() + timedelta(days=5),
-            num_of_passengers=5,
-            total_cost=40,
-            rate=5
-        )
-
-        Calendar.objects.create(
-            customer=customer,
-            villa=v2,
-            start_date=datetime.now() + timedelta(days=3),
-            end_date=datetime.now() + timedelta(days=5),
-            num_of_passengers=4,
-            total_cost=100,
-            rate=5
+            postal_code='1235',
+            rate=4
         )
 
     def test_invalid_token(self):
@@ -1253,3 +1207,225 @@ class MostRatedVillasTest(TestCase):
             )
             result = [v['villa_id'] for v in responce.data['data']]
             self.assertEquals(result, outputs[test])
+
+
+class AddVillaRateTest(TestCase):
+    def setUp(self) -> None:
+
+        owner = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+        owner.username = owner.email
+        owner.save()
+
+        customer = Account.objects.create(
+            first_name='Sadegh',
+            last_name='Jafari',
+            email='sadeghjafari@gmail.com',
+            phone_number='+989152147501',
+            gender='Male',
+            password='123456'
+        )
+        customer.username = customer.email
+        customer.save()
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=customer)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+
+        v1 = Villa.objects.create(
+            name='test1',
+            type='Urban',
+            price_per_night=10,
+            country='Iran',
+            city='Esfahan',
+            address='Iran Esfahan',
+            latitude=100,
+            longitude=100,
+            area=1,
+            owner=owner,
+            capacity=10,
+            max_capacity=20,
+            postal_code='1234',
+            rate = 4,
+            no_rate = 4
+        )
+
+        self.reserve = Calendar.objects.create(
+            customer=customer,
+            villa=v1,
+            start_date=datetime.now(),
+            end_date=datetime.now() + timedelta(days=1),
+            num_of_passengers=10,
+            total_cost=50,
+        )
+
+
+    def test_invalid_token(self):
+        response = client.post(
+            reverse('villa:add_rate'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_invalid_requestParams(self):
+        response = client.post(
+            reverse('villa:add_rate'),
+            data={},
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_does_not_exist_reserve(self):
+        response = client.post(
+            reverse('villa:add_rate'),
+            data = {'reserve_id':20, 'rate':5},
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_add_rate_currectly(self):
+        response = client.post(
+            reverse('villa:add_rate'),
+            data = {'reserve_id':self.reserve.calendar_id, 'rate':5},
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.data['data']['rate'], 4.2)
+
+
+class LikeVillaTest(TestCase):
+    """ Test module for like/dislike villa by user """
+
+    def setUp(self):
+        new_user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+
+        villa = Villa.objects.create(
+            name='My Villa',
+            type='Coastal',
+            price_per_night=2300,
+            country='Iran',
+            state='Mazandaran',
+            city='Sari',
+            address='St 2.',
+            postal_code='9738920343',
+            latitude=31.2458,
+            longitude=35.25478,
+            area=150,
+            owner=new_user,
+            capacity=10,
+            max_capacity=15,
+            number_of_bathrooms=2,
+            number_of_bedrooms=2,
+            number_of_single_beds=1,
+            number_of_double_beds=1,
+            number_of_showers=1
+        )
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=new_user)
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+        self.villa_id = villa.villa_id
+
+        self.valid_like = {
+            'villa_id': villa.villa_id,
+            'like': 'true'
+        }
+
+        self.valid_dislike = {
+            'villa_id': villa.villa_id,
+            'like': 'false'
+        }
+
+        self.invalid_like = {
+            'villa_id': villa.villa_id,
+        }
+
+        self.invalid_like2 = {
+            'villa_id': villa.villa_id,
+            'like': 'xx'
+        }
+
+        self.invalid_like3 = {
+            'like': 'true'
+        }
+
+        self.invalid_like4 = {
+            'villa_id': 4,
+            'like': 'true'
+        }
+
+    def test_valid_like_villa(self):
+        response = client.post(
+            reverse('villa:like_villa'),
+            data=self.valid_like,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        my_villa = Villa.objects.get(villa_id=self.villa_id)
+        self.assertEqual(my_villa.likes.count(), 1)
+
+    def test_valid_dislike_villa(self):
+        response = client.post(
+            reverse('villa:like_villa'),
+            data=self.valid_dislike,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        my_villa = Villa.objects.get(villa_id=self.villa_id)
+        self.assertEqual(my_villa.likes.count(), 0)
+
+    def test_invalid_like_villa(self):
+        response = client.post(
+            reverse('villa:like_villa'),
+            data=self.invalid_like,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = client.post(
+            reverse('villa:like_villa'),
+            data=self.invalid_like,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = client.post(
+            reverse('villa:like_villa'),
+            data=self.invalid_like2,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = client.post(
+            reverse('villa:like_villa'),
+            data=self.invalid_like3,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = client.post(
+            reverse('villa:like_villa'),
+            data=self.invalid_like4,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_like_villa_unauthorized(self):
+        response = client.post(
+            reverse('villa:like_villa'),
+            data=self.valid_like,
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

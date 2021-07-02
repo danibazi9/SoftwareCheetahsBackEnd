@@ -64,7 +64,7 @@ class Villa(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     area = models.IntegerField()
-    owner = models.ForeignKey(Account, on_delete=models.CASCADE)
+    owner = models.ForeignKey(Account, related_name='villa', on_delete=models.CASCADE)
     capacity = models.IntegerField()
     max_capacity = models.IntegerField()
     number_of_bathrooms = models.IntegerField(default=1)
@@ -75,6 +75,9 @@ class Villa(models.Model):
     documents = models.ManyToManyField(Document, blank=True)
     rules = models.ManyToManyField(Rule, blank=True)
     visible = models.BooleanField(default=True)
+    rate = models.FloatField(null=True, blank=True)
+    no_rate = models.IntegerField(default=0)
+    likes = models.ManyToManyField(Account, related_name='likes', blank=True)
 
     def __str__(self):
         return self.name + ", Owner: " + self.owner.first_name + " " + self.owner.last_name
@@ -86,8 +89,8 @@ class Calendar(models.Model):
     villa = models.ForeignKey(Villa, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
-    num_of_passengers = models.IntegerField()
-    total_cost = models.FloatField()
+    num_of_passengers = models.IntegerField(default=1)
+    total_cost = models.FloatField(default=0)
     closed = models.BooleanField(default=False)
     RATE_CHOICES = [
         (1, 1),
