@@ -77,8 +77,8 @@ class Calendar(models.Model):
     villa = models.ForeignKey(Villa, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
-    num_of_passengers = models.IntegerField()
-    total_cost = models.FloatField()
+    num_of_passengers = models.IntegerField(default=1)
+    total_cost = models.FloatField(default=0)
     closed = models.BooleanField(default=False)
 
     def __str__(self):
