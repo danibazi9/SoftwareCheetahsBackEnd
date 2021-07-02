@@ -19,7 +19,10 @@ eggs/
 lib/
 lib64/
 parts/
-live-static/
+static/
+media_cdn/
+media-root/
+media/
 sdist/
 var/
 wheels/
@@ -54,7 +57,7 @@ coverage.xml
 
 # Django stuff:
 *.log
-local_settings.py
+settings.py
 
 # Flask stuff:
 instance/
@@ -108,10 +111,10 @@ media/
 *.pyc
 *.db
 *.pid
-
+db.sqlite3
 # Ignore Django Migrations in Development if you are working on team
 
 # Only for Development only
-# **/migrations/**
-# !**/migrations
-# !**/migrations/__init__.py
+**/migrations/**
+!**/migrations
+!**/migrations/__init__.py
