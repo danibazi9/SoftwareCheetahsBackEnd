@@ -10,7 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 import os
+import json
 from pathlib import Path
+
+# with open('/etc/config.json') as config_file:
+#     config = json.load(config_file)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '#^uegex-44hfecdncv4g*ybm=1auai&_o0sla95dwo!drgbk#y'
+SECRET_KEY = "#^uegex-44hfecdncv4g*ybm=1auai&_o0sla95dwo!drgbk#y"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -31,6 +35,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,10 +46,16 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_cleanup',
     'rest_framework.authtoken',
-    'django_crontab',
+    'push_notifications',
+    'chat',
     'account',
     'villa',
 ]
+
+PUSH_NOTIFICATIONS_SETTINGS = {
+        "FCM_API_KEY": "AAAAyz6pvDI:APA91bGLi4HpBTeX9b11ZbwBa3FhYvoyCkr9riFi9PEmMLyH2C1cbKHWLBTmNb"
+                       "-iKTg5Z3cznhY8XYKdWqW5ohpT1Dq1EShqjdTddMOPJbXUnWnp0LOJCKHoxhIET_zFEdDBmYWpkCN7",
+}
 
 AUTH_USER_MODEL = 'account.Account'
 
@@ -87,6 +98,15 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'SoftwareCheetahsBackEnd.wsgi.application'
+ASGI_APPLICATION = 'SoftwareCheetahsBackEnd.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database
@@ -98,12 +118,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
-# cronjobs
-CRONJOBS = [
-    ('*/1 * * * *', 'tasks.remove_waste_images')
-    # ('*/60 0 * * *', 'tasks.remove_waste_images')
-]
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -128,8 +142,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'info.sweethome2021@gmail.com'
-EMAIL_HOST_PASSWORD = 's-cheetahs1400'
+EMAIL_HOST_USER = "info.sweethome2021@gmail.com"
+EMAIL_HOST_PASSWORD = "s-cheetahs1400"
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -147,21 +161,9 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-'''STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'''
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticsfile')
-
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, "static"),
-)
-
-STATIC_ROOT = os.path.join(BASE_DIR, "live-static", "static-root")
-
-#STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
-
-#STATIC_ROOT = "/home/cfedeploy/webapps/cfehome_static_root/"
-
-MEDIA_URL = "/live-static/"
-
-MEDIA_ROOT = os.path.join(BASE_DIR, "live-static", "media-root")
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media_cdn')
+MEDIA_URL = '/media/'

@@ -30,6 +30,14 @@ class Document(models.Model):
         return f"Document ID: {self.document_id}"
 
 
+class Rule(models.Model):
+    rule_id = models.AutoField(primary_key=True)
+    text = models.TextField(unique=True)
+
+    def __str__(self):
+        return self.text
+
+
 class Villa(models.Model):
     villa_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=40)
@@ -56,7 +64,7 @@ class Villa(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     area = models.IntegerField()
-    owner = models.ForeignKey(Account, on_delete=models.CASCADE)
+    owner = models.ForeignKey(Account, related_name='villa', on_delete=models.CASCADE)
     capacity = models.IntegerField()
     max_capacity = models.IntegerField()
     number_of_bathrooms = models.IntegerField(default=1)
@@ -65,7 +73,11 @@ class Villa(models.Model):
     number_of_double_beds = models.IntegerField(default=1)
     number_of_showers = models.IntegerField(default=1)
     documents = models.ManyToManyField(Document, blank=True)
+    rules = models.ManyToManyField(Rule, blank=True)
     visible = models.BooleanField(default=True)
+    rate = models.FloatField(null=True, blank=True)
+    no_rate = models.IntegerField(default=0)
+    likes = models.ManyToManyField(Account, related_name='likes', blank=True)
 
     def __str__(self):
         return self.name + ", Owner: " + self.owner.first_name + " " + self.owner.last_name
@@ -80,6 +92,14 @@ class Calendar(models.Model):
     num_of_passengers = models.IntegerField(default=1)
     total_cost = models.FloatField(default=0)
     closed = models.BooleanField(default=False)
+    RATE_CHOICES = [
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+        (5, 5)
+    ]
+    rate = models.IntegerField(choices=RATE_CHOICES, null=True)
 
     def __str__(self):
         return self.villa.name + ", Customer: " + self.customer.__str__()
