@@ -61,6 +61,13 @@ def add_additional_info(villa_data, user_id):
 
         del x['likes']
 
+        try:
+            Calendar.objects.get(villa__villa_id=x['villa_id'], customer__user_id=owner.user_id,
+                                 end_date__gte=datetime.datetime.now().date())
+            x['reserved'] = True
+        except Calendar.DoesNotExist:
+            x['reserved'] = False
+
     return final_data
 
 
@@ -206,6 +213,13 @@ class UserVilla(APIView):
                 data['like'] = False
 
             del data['likes']
+
+            try:
+                Calendar.objects.get(villa__villa_id=villa_id, customer__user_id=self.request.user.user_id,
+                                     end_date__gte=datetime.datetime.now().date())
+                data['reserved'] = True
+            except Calendar.DoesNotExist:
+                data['reserved'] = False
 
             data['user_id'] = self.request.user.user_id
 
