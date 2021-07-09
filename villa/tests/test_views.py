@@ -1429,3 +1429,67 @@ class LikeVillaTest(TestCase):
             HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class CheckGetFavoriteVillas(TestCase):
+    """ Test module for get favorite villas of each user """
+
+    def setUp(self):
+        self.new_user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+
+        new_villa = Villa.objects.create(
+            name='My Villa',
+            type='Coastal',
+            price_per_night=3456765432234567,
+            country='Iran',
+            state='Mazandaran',
+            city='Sari',
+            address='St 2.',
+            postal_code='9738920343',
+            latitude=0,
+            longitude=0,
+            area=15200,
+            owner=self.new_user,
+            capacity=10,
+            max_capacity=15,
+            number_of_bathrooms=234564324,
+            number_of_bedrooms=2344534,
+            number_of_single_beds=2343454,
+            number_of_double_beds=14444,
+            number_of_showers=4452
+        )
+
+        new_villa.likes.add(self.new_user)
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=self.new_user)
+
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+
+    def test_get_favorite_villas_authorized(self):
+        response = client.get(
+            reverse('villa:get_favorite_villas'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token.key),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['data']), len(Villa.objects.filter(likes__user_id=self.new_user.user_id)))
+
+        for villa in response.data['data']:
+            self.assertEqual(villa['name'], 'My Villa')
+            self.assertEqual(villa['country'], 'Iran')
+            self.assertEqual(villa['state'], 'Mazandaran')
+            self.assertEqual(villa['city'], 'Sari')
+            self.assertEqual(villa['owner'], self.new_user.__str__())
+
+    def test_get_favorite_villas_unauthorized(self):
+        response = client.get(
+            reverse('villa:get_favorite_villas'),
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
