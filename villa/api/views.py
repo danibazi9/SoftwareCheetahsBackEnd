@@ -83,7 +83,7 @@ def get_user_villas(request):
     serializer = VillaSerializer(villas, many=True)
     data = json.loads(json.dumps(serializer.data))
 
-    return Response(add_additional_info(data, request.user.user_id), status=status.HTTP_200_OK)
+    return Response({'data': add_additional_info(data, request.user.user_id)}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET', ])
@@ -98,7 +98,7 @@ def get_all_villas(request):
     serializer = VillaSerializer(all_villas, many=True)
     data = json.loads(json.dumps(serializer.data))
 
-    return Response(add_additional_info(data, request.user.user_id), status=status.HTTP_200_OK)
+    return Response({'data':add_additional_info(data, request.user.user_id)}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST', ])
@@ -575,4 +575,4 @@ def get_favourite_villas(request):
     serializer = VillaSerializer(favourite_villas, many=True)
     data = json.loads(json.dumps(serializer.data))
 
-    return Response(add_additional_info(data, request.user.user_id), status=status.HTTP_200_OK)
+    return Response({'data': add_additional_info(data, request.user.user_id)}, status=status.HTTP_200_OK)
