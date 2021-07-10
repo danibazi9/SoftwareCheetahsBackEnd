@@ -1493,3 +1493,97 @@ class CheckGetFavoriteVillas(TestCase):
             HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class CheckPostalCode(TestCase):
+    """ Test module for checking postal code of villa (must unique) """
+
+    def setUp(self):
+        new_user = Account.objects.create(
+            first_name='Danial',
+            last_name='Bazmandeh',
+            email='danibazi9@gmail.com',
+            phone_number='+989152147655',
+            gender='Male',
+            password='123456'
+        )
+
+        Villa.objects.create(
+            name='My Villa',
+            type='Coastal',
+            price_per_night=3456765432234567,
+            country='Iran',
+            state='Mazandaran',
+            city='Sari',
+            address='St 2.',
+            postal_code='9738920343',
+            latitude=0,
+            longitude=0,
+            area=15200,
+            owner=new_user,
+            capacity=10,
+            max_capacity=15,
+            number_of_bathrooms=234564324,
+            number_of_bedrooms=2344534,
+            number_of_single_beds=2343454,
+            number_of_double_beds=14444,
+            number_of_showers=4452
+        )
+
+        self.invalid_data = {
+        }
+
+        self.invalid_data2 = {
+            'p': '9738920343'
+        }
+
+        self.unique_data = {
+            'postal_code': '1230245687'
+        }
+
+        self.redundant_data = {
+            'postal_code': '9738920343'
+        }
+
+        self.valid_token, self.created = Token.objects.get_or_create(user=new_user)
+
+        self.invalid_token = 'fasdfs45dsfasd1fsfasdf4dfassf13'
+
+    def test_unique_check_postal_code(self):
+        response = client.post(
+            reverse('villa:check_postal_code'),
+            data=self.unique_data,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_redundant_check_postal_code(self):
+        response = client.post(
+            reverse('villa:check_postal_code'),
+            data=self.redundant_data,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
+
+    def test_invalid_check_postal_code(self):
+        response = client.post(
+            reverse('villa:check_postal_code'),
+            data=self.invalid_data,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = client.post(
+            reverse('villa:check_postal_code'),
+            data=self.invalid_data2,
+            HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_check_postal_code_unauthorized(self):
+        response = client.post(
+            reverse('villa:check_postal_code'),
+            data=self.unique_data,
+            HTTP_AUTHORIZATION='Token {}'.format(self.invalid_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
