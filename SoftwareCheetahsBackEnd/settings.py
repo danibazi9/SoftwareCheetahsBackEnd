@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'chat',
     'account',
     'villa',
+    'payment',
 ]
 
 PUSH_NOTIFICATIONS_SETTINGS = {

@@ -25,6 +25,7 @@ urlpatterns = [
     path('api/account/', include('account.api.urls')),
     path('api/villa/', include('villa.api.urls')),
     path('api/chat/', include('chat.api.urls')),
+    path('api/payment/', include('payment.api.urls')),
     path('device/fcms/', fcm_push_notifications, name='fcm-push-notification'),
     path('device/add/', fcm_add_device, name='fcm-add-device'),
 ]
