@@ -17,7 +17,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-from .push_notif import fcm_push_notifications
+from .push_notif import fcm_push_notifications, fcm_add_device
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/villa/', include('villa.api.urls')),
     path('api/chat/', include('chat.api.urls')),
     path('device/fcms/', fcm_push_notifications, name='fcm-push-notification'),
+    path('device/add/', fcm_add_device, name='fcm-add-device'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_URL)
