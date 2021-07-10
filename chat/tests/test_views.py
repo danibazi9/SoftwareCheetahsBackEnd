@@ -1,6 +1,5 @@
 from chat.models import Chat, Message
-import os
-import json
+import pytz
 
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -71,7 +70,7 @@ class ShowChatsTest(TestCase):
             chat=chat1,
             owner=user,
             text='hello',
-            time=datetime.now()
+            time=datetime.now(tz=pytz.timezone('UTC'))
         )
 
     def test_invalid_token(self):

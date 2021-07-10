@@ -3,7 +3,7 @@ import datetime
 import json
 
 from django.core.files.base import ContentFile
-from django.db.models.aggregates import Avg
+from push_notifications.models import GCMDevice
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -16,19 +16,10 @@ from villa.api.serializer import *
 from villa.models import *
 
 
-@api_view(['GET', ])
-@permission_classes((IsAuthenticated,))
-def get_all_villas(request):
-    all_villas = Villa.objects.filter(visible=True)
+def add_additional_info(villa_data, user_id):
+    final_data = villa_data
 
-    my_flag = request.query_params.get('me', None)
-    if my_flag is not None:
-        all_villas = Villa.objects.filter(owner=request.user, visible=True)
-
-    serializer = VillaSerializer(all_villas, many=True)
-    data = json.loads(json.dumps(serializer.data))
-
-    for x in data:
+    for x in final_data:
         owner = Account.objects.get(user_id=x['owner'])
         x['owner'] = owner.__str__()
         x['owner_image'] = None
@@ -64,7 +55,58 @@ def get_all_villas(request):
             rules_list.append(rule.text)
         x['rules'] = rules_list
 
-    return Response(data, status=status.HTTP_200_OK)
+        if user_id in x['likes']:
+            x['like'] = True
+        else:
+            x['like'] = False
+
+        del x['likes']
+
+        try:
+            Calendar.objects.get(villa__villa_id=x['villa_id'], customer__user_id=owner.user_id,
+                                 end_date__gte=datetime.datetime.now().date())
+            x['reserved'] = True
+        except Calendar.DoesNotExist:
+            x['reserved'] = False
+
+    return final_data
+
+
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def get_user_villas(request):
+    hosted = request.query_params.get('hosted', None)
+    reserved = request.query_params.get('reserved', None)
+
+    if hosted is not None and reserved is None:
+        villas = Villa.objects.filter(owner=request.user, visible=True)
+    elif reserved is not None and hosted is None:
+        villas_id_list = list(
+            Calendar.objects.filter(customer__user_id=request.user.user_id).values_list('villa', flat=True)
+        )
+        villas = Villa.objects.filter(villa_id__in=villas_id_list)
+    else:
+        return Response("hosted/reserved: BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = VillaSerializer(villas, many=True)
+    data = json.loads(json.dumps(serializer.data))
+
+    return Response({'data': add_additional_info(data, request.user.user_id)}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def get_all_villas(request):
+    all_villas = Villa.objects.filter(visible=True)
+
+    my_flag = request.query_params.get('me', None)
+    if my_flag is not None:
+        all_villas = Villa.objects.filter(owner=request.user, visible=True)
+
+    serializer = VillaSerializer(all_villas, many=True)
+    data = json.loads(json.dumps(serializer.data))
+
+    return Response({'data':add_additional_info(data, request.user.user_id)}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST', ])
@@ -120,6 +162,7 @@ class UserVilla(APIView):
 
             owner = Account.objects.get(user_id=data['owner'])
             data['owner'] = owner.__str__()
+            data['owner_id'] = owner.user_id
             data['phone_number'] = owner.phone_number
             data['owner_image'] = None
 
@@ -164,6 +207,20 @@ class UserVilla(APIView):
                 rule = Rule.objects.get(rule_id=rule_id)
                 rules_list.append(rule.text)
             data['rules'] = rules_list
+
+            if self.request.user.user_id in data['likes']:
+                data['like'] = True
+            else:
+                data['like'] = False
+
+            del data['likes']
+
+            try:
+                Calendar.objects.get(villa__villa_id=villa_id, customer__user_id=self.request.user.user_id,
+                                     end_date__gte=datetime.datetime.now().date())
+                data['reserved'] = True
+            except Calendar.DoesNotExist:
+                data['reserved'] = False
 
             data['user_id'] = self.request.user.user_id
 
@@ -214,12 +271,12 @@ class UserVilla(APIView):
             if 'rule_id_list' in data:
                 list_of_rule_ids = data['rule_id_list']
                 if len(list_of_rule_ids) > 0:
-                    for id in list_of_rule_ids:
+                    for rule_id in list_of_rule_ids:
                         try:
-                            rule_to_add = Rule.objects.get(rule_id=id)
+                            rule_to_add = Rule.objects.get(rule_id=rule_id)
                             rules_to_add.append(rule_to_add)
                         except Rule.DoesNotExist:
-                            return Response(f"Rule with rule_id {id} NOT FOUND!",
+                            return Response(f"Rule with rule_id {rule_id} NOT FOUND!",
                                             status=status.HTTP_404_NOT_FOUND)
 
             villa = serializer.save()
@@ -261,6 +318,12 @@ class UserVilla(APIView):
             villa.facilities.add(facility)
 
         villa.save()
+
+        try:
+            fcm_device = GCMDevice.objects.get(user=self.request.user)
+            fcm_device.send_message(title=f"New villa added!", message=f"New villa '{villa.name}' added!")
+        except GCMDevice.DoesNotExist:
+            print("Error!")
 
         return Response(f"Villa with villa_id {villa.villa_id} created successfully!",
                         status=status.HTTP_201_CREATED)
@@ -311,10 +374,10 @@ def search(request):
         query = query & Q(country=data['country'])
 
     if 'city' in data.keys():
-        query = query & Q(city=data['city'])    
+        query = query & Q(city=data['city'])
 
     if 'state' in data.keys():
-        query = query & Q(state=data['state'])    
+        query = query & Q(state=data['state'])
 
     villas = Villa.objects.filter(query)
     if 'start_date' in data.keys() and 'end_date' in data.keys():
@@ -324,10 +387,10 @@ def search(request):
         for v in villas:
             query = Q(villa=v)
             query = query & (
-                            Q(start_date__gte=start_date.date(), start_date__lt=end_date.date())
-                            | Q(start_date__lte=start_date.date(), end_date__gte=end_date.date())
-                            | Q(end_date__gt=start_date.date(), end_date__lte=end_date.date())
-                            )
+                    Q(start_date__gte=start_date.date(), start_date__lt=end_date.date())
+                    | Q(start_date__lte=start_date.date(), end_date__gte=end_date.date())
+                    | Q(end_date__gt=start_date.date(), end_date__lte=end_date.date())
+            )
             no_overlapped_calendars = Calendar.objects.filter(query).count()
             if no_overlapped_calendars == 0:
                 selected_villas.append(v)
@@ -339,12 +402,13 @@ def search(request):
     if int(data['number_of_villa']) < len_data:
         start = (int(data['page']) - 1) * int(data['number_of_villa'])
         end = min(int(data['page']) * int(data['number_of_villa']), len_data)
-        return Response({"message": 'search successfully', "data": serializer.data[start:end]}, status=status.HTTP_200_OK)
+        return Response({"message": 'search successfully', "data": serializer.data[start:end]},
+                        status=status.HTTP_200_OK)
     else:
         return Response({"message": 'search successfully', "data": serializer.data}, status=status.HTTP_200_OK)
 
 
-@api_view(['GET', ]) 
+@api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
 def show_villa_calendar(request):
     try:
@@ -363,7 +427,7 @@ def show_villa_calendar(request):
         while current_date <= end_date:
             date_list.append(current_date.strftime('%Y-%m-%d'))
             current_date = current_date + datetime.timedelta(days=1)
-        
+
     return Response({'message': 'show villa calendar successfully', 'dates': date_list}, status=status.HTTP_200_OK)
 
 
@@ -392,10 +456,10 @@ def register_villa(request):
         return Response(f"ERROR: the end_date can't be for the past!", status=status.HTTP_400_BAD_REQUEST)
 
     overlapped_calendars = Calendar.objects.filter(
-                                                   Q(start_date__gte=start_date.date(), start_date__lt=end_date.date())
-                                                   | Q(start_date__lte=start_date.date(), end_date__gte=end_date.date())
-                                                   | Q(end_date__gt=start_date.date(), end_date__lte=end_date.date())
-                                                   )
+        Q(start_date__gte=start_date.date(), start_date__lt=end_date.date())
+        | Q(start_date__lte=start_date.date(), end_date__gte=end_date.date())
+        | Q(end_date__gt=start_date.date(), end_date__lte=end_date.date())
+    )
     if len(overlapped_calendars) > 0:
         return Response(f"ERROR: This period has overlapped with other registration!",
                         status=status.HTTP_400_BAD_REQUEST)
@@ -425,35 +489,39 @@ def get_most_reserved_city(request):
         state = request.GET['state']
         query = query & Q(villa__state=state)
 
-    most_registered = Calendar.objects.filter(query).values('villa__country', 'villa__state', 'villa__city').order_by().annotate(Count('villa__city')).order_by('villa__city__count')[::-1][:number_of_villa]
+    most_registered = Calendar.objects.filter(query).values('villa__country', 'villa__state',
+                                                            'villa__city').order_by().annotate(
+        Count('villa__city')).order_by('villa__city__count')[::-1][:number_of_villa]
     data_list = []
     for v in most_registered:
         data = {}
-        villa_count = Villa.objects.filter(country=v['villa__country'], state=v['villa__state'], city=v['villa__city']).count()
+        villa_count = Villa.objects.filter(country=v['villa__country'], state=v['villa__state'],
+                                           city=v['villa__city']).count()
         data['country'] = v['villa__country']
         data['state'] = v['villa__state']
         data['city'] = v['villa__city']
         data['no_villa'] = villa_count
         data_list.append(data)
 
-    return Response({'message':'show most popular city successfully', 'data':data_list}, status=status.HTTP_200_OK)
+    return Response({'message': 'show most popular city successfully', 'data': data_list}, status=status.HTTP_200_OK)
 
-  
+
 @api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
 def show_most_registered_villas(request):
     if 'number_of_villa' not in request.GET:
         return Response(f"Number_of_villa: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
-    
+
     number_of_villa = int(request.GET['number_of_villa'])
-    most_registered = Calendar.objects.values('villa').order_by().annotate(Count('villa')).order_by('villa__count')[::-1][:number_of_villa]
-    
+    most_registered = Calendar.objects.values('villa').order_by().annotate(Count('villa')).order_by('villa__count')[
+                      ::-1][:number_of_villa]
+
     data = []
     for v in most_registered:
         villa = Villa.objects.get(villa_id=v['villa'])
         serializer = VillaSearchSerializer(villa)
         data.append(serializer.data)
-    return Response({'message':'find most reserved successfully' ,'data':data}, status=status.HTTP_200_OK)
+    return Response({'message': 'find most reserved successfully', 'data': data}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET', ])
@@ -461,19 +529,18 @@ def show_most_registered_villas(request):
 def show_most_rated_villas(request):
     if 'number_of_villa' not in request.GET:
         return Response(f"Number_of_villa: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
-    
+
     number_of_villa = int(request.GET['number_of_villa'])
     most_rated = Villa.objects.filter().order_by('rate')[::-1][:number_of_villa]
     serializer = VillaSearchSerializer(many=True, data=most_rated)
     serializer.is_valid()
-    return Response({'message':'find most rated successfully' ,'data':serializer.data},
-                     status=status.HTTP_200_OK)
+    return Response({'message': 'find most rated successfully', 'data': serializer.data},
+                    status=status.HTTP_200_OK)
 
 
 @api_view(['POST', ])
 @permission_classes((IsAuthenticated,))
 def add_rate(request):
-    costumer = request.user
     if 'reserve_id' in request.data.keys() and 'rate' in request.data.keys():
         try:
             reserve = Calendar.objects.get(calendar_id=int(request.POST['reserve_id']))
@@ -484,11 +551,64 @@ def add_rate(request):
             villa.no_rate += 1
             villa.save()
             serializer = VillaSearchSerializer(villa)
-            return Response({'message':'add rate successfully','data':serializer.data},
-                                status=status.HTTP_200_OK)
-        except:
-            return Response({'message':f"reserve_id {request.POST['reserve_id']} does not exist"},
+            return Response({'message': 'add rate successfully', 'data': serializer.data},
+                            status=status.HTTP_200_OK)
+        except Calendar.DoesNotExist:
+            return Response({'message': f"reserve_id {request.POST['reserve_id']} does not exist"},
                             status=status.HTTP_404_NOT_FOUND)
     else:
         return Response({'message': 'invalid body request'},
-                         status=status.HTTP_400_BAD_REQUEST)
+                        status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST', ])
+@permission_classes((IsAuthenticated,))
+def like_villa(request):
+    if 'villa_id' not in request.data:
+        return Response("Villa_id: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
+    if 'like' not in request.data:
+        return Response("Like: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
+    villa_id = request.data['villa_id']
+    like = request.data['like']
+
+    try:
+        villa = Villa.objects.get(villa_id=villa_id)
+    except Villa.DoesNotExist:
+        return Response(f"Villa with villa_id {villa_id} doesn't exist!", status=status.HTTP_404_NOT_FOUND)
+
+    if like == 'true':
+        villa.likes.add(request.user)
+        return Response("Successfully liked!", status=status.HTTP_200_OK)
+    elif like == 'false':
+        villa.likes.remove(request.user)
+        return Response("Successfully disliked!", status=status.HTTP_200_OK)
+    else:
+        return Response("Like: BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def get_favourite_villas(request):
+    favourite_villas = Villa.objects.filter(likes__user_id=request.user.user_id)
+
+    serializer = VillaSerializer(favourite_villas, many=True)
+    data = json.loads(json.dumps(serializer.data))
+
+    return Response({'data': add_additional_info(data, request.user.user_id)}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST', ])
+@permission_classes((IsAuthenticated,))
+def check_postal_code(request):
+    if 'postal_code' not in request.data:
+        return Response("Postal_code: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
+    postal_code = request.data['postal_code']
+
+    try:
+        Villa.objects.get(postal_code=postal_code)
+        return Response("There exist a villa with this postal code!", status=status.HTTP_406_NOT_ACCEPTABLE)
+    except Villa.DoesNotExist:
+        return Response("There isn't any villa with this postal code!", status=status.HTTP_200_OK)
