@@ -321,10 +321,9 @@ class UserVilla(APIView):
 
         try:
             fcm_device = GCMDevice.objects.get(user=self.request.user)
+            fcm_device.send_message(title=f"New villa added!", message=f"New villa '{villa.name}' added!")
         except GCMDevice.DoesNotExist:
             print("Error!")
-
-        fcm_device.send_message(title=f"New villa added!", message=f"New villa '{villa.name}' added!")
 
         return Response(f"Villa with villa_id {villa.villa_id} created successfully!",
                         status=status.HTTP_201_CREATED)
