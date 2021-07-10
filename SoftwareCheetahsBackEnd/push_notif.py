@@ -45,6 +45,7 @@ def fcm_add_device(request):
     try:
         fcm_device = GCMDevice.objects.get(user=request.user)
         fcm_device.registration_id = token
+        fcm_device.save()
     except GCMDevice.DoesNotExist:
         GCMDevice.objects.create(registration_id=token, cloud_message_type="FCM", user=request.user)
 
