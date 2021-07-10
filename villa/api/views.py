@@ -467,6 +467,18 @@ def register_villa(request):
     serializer = RegisterVillaSerializer(data=data)
     if serializer.is_valid():
         villa = serializer.save()
+
+        customer_device = GCMDevice.objects.get(user=request.user)
+        host_device = GCMDevice.objects.get(user=villa.owner)
+
+        customer_device.send_message(title=f"Reservation done!",
+                                     message=f"The villa reserved for you between {start_date} - {end_date}"
+                                     )
+
+        host_device.send_message(title=f"Hey, you have a new guest!",
+                                 message=f"A new customer reserved your villa between {start_date} - {end_date}"
+                                 )
+
         return Response(f"Villa with villa_id {villa.villa_id} registered successfully!",
                         status=status.HTTP_201_CREATED)
     else:
