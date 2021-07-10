@@ -79,17 +79,35 @@ def get_user_villas(request):
     reserved = request.query_params.get('reserved', None)
 
     if hosted is not None and reserved is None:
-        villas = Villa.objects.filter(owner=request.user, visible=True)
+        villas = Villa.objects.filter(owner=request.user)
     elif reserved is not None and hosted is None:
-        villas_id_list = list(
-            Calendar.objects.filter(customer__user_id=request.user.user_id).values_list('villa', flat=True)
+        villas_id_list = set(
+            Calendar.objects.filter(
+                customer__user_id=request.user.user_id,
+                end_date__gte=datetime.datetime.now().date()
+            ).values_list('villa', flat=True)
         )
-        villas = Villa.objects.filter(villa_id__in=villas_id_list)
+        villas = Villa.objects.filter(villa_id__in=villas_id_list, visible=True)
     else:
         return Response("hosted/reserved: BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
 
     serializer = VillaSerializer(villas, many=True)
     data = json.loads(json.dumps(serializer.data))
+
+    if reserved is not None and hosted is None:
+        for x in data:
+            reserved_date_list = []
+            reserved_dates = set(
+                Calendar.objects.filter(villa__villa_id=x['villa_id'],
+                                        customer__user_id=request.user.user_id,
+                                        end_date__gte=datetime.datetime.now().date()
+                                        )
+            )
+
+            for reserved_date in reserved_dates:
+                reserved_date_list.append(f"{str(reserved_date.start_date)},{str(reserved_date.end_date)}")
+
+            x['reserved_dates'] = reserved_date_list
 
     return Response({'data': add_additional_info(data, request.user.user_id)}, status=status.HTTP_200_OK)
 
@@ -99,14 +117,10 @@ def get_user_villas(request):
 def get_all_villas(request):
     all_villas = Villa.objects.filter(visible=True)
 
-    my_flag = request.query_params.get('me', None)
-    if my_flag is not None:
-        all_villas = Villa.objects.filter(owner=request.user, visible=True)
-
     serializer = VillaSerializer(all_villas, many=True)
     data = json.loads(json.dumps(serializer.data))
 
-    return Response({'data':add_additional_info(data, request.user.user_id)}, status=status.HTTP_200_OK)
+    return Response({'data': add_additional_info(data, request.user.user_id)}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST', ])
@@ -319,11 +333,14 @@ class UserVilla(APIView):
 
         villa.save()
 
-        fcm_devices = GCMDevice.objects.all().exclude(user=self.request.user)
-        for device in fcm_devices:
-            device.send_message(title=f"Hey, We've got a new villa for you!",
-                                message=f"{villa.country}, {villa.state}, {villa.city}"
-                                )
+        try:
+            fcm_devices = GCMDevice.objects.all().exclude(user=self.request.user)
+            for device in fcm_devices:
+                device.send_message(title=f"Hey, We've got a new villa for you!",
+                                    message=f"{villa.country}, {villa.state}, {villa.city}"
+                                    )
+        except Exception as e:
+            print(f"Error: {e}")
 
         return Response(f"Villa with villa_id {villa.villa_id} created successfully!",
                         status=status.HTTP_201_CREATED)
@@ -468,16 +485,19 @@ def register_villa(request):
     if serializer.is_valid():
         villa = serializer.save()
 
-        customer_device = GCMDevice.objects.get(user=request.user)
-        host_device = GCMDevice.objects.get(user=villa.owner)
+        try:
+            customer_device = GCMDevice.objects.get(user=request.user)
+            host_device = GCMDevice.objects.get(user=villa.owner)
 
-        customer_device.send_message(title=f"Reservation done!",
-                                     message=f"The villa reserved for you between {start_date} - {end_date}"
+            customer_device.send_message(title=f"Reservation done!",
+                                         message=f"The villa reserved for you between {start_date} - {end_date}"
+                                         )
+
+            host_device.send_message(title=f"Hey, you have a new guest!",
+                                     message=f"A new customer reserved your villa between {start_date} - {end_date}"
                                      )
-
-        host_device.send_message(title=f"Hey, you have a new guest!",
-                                 message=f"A new customer reserved your villa between {start_date} - {end_date}"
-                                 )
+        except Exception as e:
+            print(f"Error: {e}")
 
         return Response(f"Villa with villa_id {villa.villa_id} registered successfully!",
                         status=status.HTTP_201_CREATED)
