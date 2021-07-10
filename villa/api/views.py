@@ -590,3 +590,18 @@ def get_favourite_villas(request):
     data = json.loads(json.dumps(serializer.data))
 
     return Response({'data': add_additional_info(data, request.user.user_id)}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST', ])
+@permission_classes((IsAuthenticated,))
+def check_postal_code(request):
+    if 'postal_code' not in request.data:
+        return Response("Postal_code: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+
+    postal_code = request.data['postal_code']
+
+    try:
+        Villa.objects.get(postal_code=postal_code)
+        return Response("There exist a villa with this postal code!", status=status.HTTP_406_NOT_ACCEPTABLE)
+    except Villa.DoesNotExist:
+        return Response("There isn't any villa with this postal code!", status=status.HTTP_200_OK)
