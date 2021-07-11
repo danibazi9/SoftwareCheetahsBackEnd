@@ -865,3 +865,78 @@ Traceback (most recent call last):
   File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/generic/websocket.py", line 240, in websocket_disconnect
     await self.disconnect(message["code"])
 TypeError: disconnect() takes 1 positional argument but 2 were given
+2021-07-11 14:14:38,871 ERROR    Exception inside application: disconnect() takes 1 positional argument but 2 were given
+Traceback (most recent call last):
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/routing.py", line 71, in __call__
+    return await application(scope, receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/sessions.py", line 47, in __call__
+    return await self.inner(dict(scope, cookies=cookies), receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/sessions.py", line 254, in __call__
+    return await self.inner(wrapper.scope, receive, wrapper.send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/auth.py", line 181, in __call__
+    return await super().__call__(scope, receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/middleware.py", line 26, in __call__
+    return await self.inner(scope, receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/routing.py", line 160, in __call__
+    send,
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/consumer.py", line 94, in app
+    return await consumer(scope, receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/consumer.py", line 59, in __call__
+    [receive, self.channel_receive], self.dispatch
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/utils.py", line 51, in await_many_dispatch
+    await dispatch(result)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/consumer.py", line 73, in dispatch
+    await handler(message)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/generic/websocket.py", line 240, in websocket_disconnect
+    await self.disconnect(message["code"])
+TypeError: disconnect() takes 1 positional argument but 2 were given
+2021-07-11 14:14:46,879 ERROR    Exception inside application: disconnect() takes 1 positional argument but 2 were given
+Traceback (most recent call last):
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/routing.py", line 71, in __call__
+    return await application(scope, receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/sessions.py", line 47, in __call__
+    return await self.inner(dict(scope, cookies=cookies), receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/sessions.py", line 254, in __call__
+    return await self.inner(wrapper.scope, receive, wrapper.send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/auth.py", line 181, in __call__
+    return await super().__call__(scope, receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/middleware.py", line 26, in __call__
+    return await self.inner(scope, receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/routing.py", line 160, in __call__
+    send,
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/consumer.py", line 94, in app
+    return await consumer(scope, receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/consumer.py", line 59, in __call__
+    [receive, self.channel_receive], self.dispatch
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/utils.py", line 51, in await_many_dispatch
+    await dispatch(result)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/consumer.py", line 73, in dispatch
+    await handler(message)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/generic/websocket.py", line 240, in websocket_disconnect
+    await self.disconnect(message["code"])
+TypeError: disconnect() takes 1 positional argument but 2 were given
+2021-07-11 14:15:30,931 ERROR    Exception inside application: disconnect() takes 1 positional argument but 2 were given
+Traceback (most recent call last):
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/routing.py", line 71, in __call__
+    return await application(scope, receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/sessions.py", line 47, in __call__
+    return await self.inner(dict(scope, cookies=cookies), receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/sessions.py", line 254, in __call__
+    return await self.inner(wrapper.scope, receive, wrapper.send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/auth.py", line 181, in __call__
+    return await super().__call__(scope, receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/middleware.py", line 26, in __call__
+    return await self.inner(scope, receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/routing.py", line 160, in __call__
+    send,
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/consumer.py", line 94, in app
+    return await consumer(scope, receive, send)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/consumer.py", line 59, in __call__
+    [receive, self.channel_receive], self.dispatch
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/utils.py", line 51, in await_many_dispatch
+    await dispatch(result)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/consumer.py", line 73, in dispatch
+    await handler(message)
+  File "/home/ubuntu/SoftwareCheetahsBackEnd/venv/lib/python3.6/site-packages/channels/generic/websocket.py", line 240, in websocket_disconnect
+    await self.disconnect(message["code"])
+TypeError: disconnect() takes 1 positional argument but 2 were given
