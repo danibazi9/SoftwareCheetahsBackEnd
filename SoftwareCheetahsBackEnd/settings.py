@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'chat',
     'account',
     'villa',
+    'payment',
 ]
 
 CRONJOBS = [
