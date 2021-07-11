@@ -82,6 +82,7 @@ def get_user_villas(request):
         villas = Villa.objects.filter(owner=request.user)
 
         serializer = VillaSerializer(villas, many=True)
+        data = json.loads(json.dumps(serializer.data))
     elif reserved is not None and hosted is None:
         reserved_rows = Calendar.objects.filter(
             customer__user_id=request.user.user_id,
@@ -89,18 +90,18 @@ def get_user_villas(request):
         )
 
         serializer = MyCalendarSerializer(reserved_rows, many=True)
+        data = json.loads(json.dumps(serializer.data))
+
+        for x in data:
+            for key in x['villa'].keys():
+                x[key] = x['villa'][key]
+            del x['villa']
+
+            x['reserved_dates'] = f"{str(x['start_date'])},{str(x['end_date'])}"
+            del x['start_date']
+            del x['end_date']
     else:
         return Response("hosted/reserved: BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
-
-    data = json.loads(json.dumps(serializer.data))
-    for x in data:
-        for key in x['villa'].keys():
-            x[key] = x['villa'][key]
-        del x['villa']
-
-        x['reserved_dates'] = f"{str(x['start_date'])},{str(x['end_date'])}"
-        del x['start_date']
-        del x['end_date']
 
     return Response({'data': add_additional_info(data, request.user.user_id)}, status=status.HTTP_200_OK)
 
