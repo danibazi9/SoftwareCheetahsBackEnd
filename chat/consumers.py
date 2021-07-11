@@ -5,6 +5,7 @@ import datetime
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 from django.http import response
+from push_notifications.models import GCMDevice
 
 from .models import Message, Chat
 from account.models import Account
@@ -66,6 +67,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
             responce = await self.fetch_message(event)
         elif event['type'] == 'create':
             responce = await self.create_message(event)
+
+            try:
+                if self.user == self.chat.account1:
+                    receiver_device = GCMDevice.objects.get(user=self.chat.account2)
+                    receiver_name = self.chat.account2.__str__()
+                elif self.user == self.chat.account2:
+                    receiver_device = GCMDevice.objects.get(user=self.chat.account1)
+                    receiver_name = self.chat.account1.__str__()
+
+                receiver_device.send_message(title=f"You have a new message from {receiver_name}!",
+                                             message=f"{responce['text']}"
+                                             )
+
+            except Exception as e:
+                print(f"Error: {e}")
+
         elif event['type'] == 'delete':
             responce = await self.delete_message(event)
         elif event['type'] == 'authenticate':
