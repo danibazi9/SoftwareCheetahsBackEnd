@@ -80,34 +80,28 @@ def get_user_villas(request):
 
     if hosted is not None and reserved is None:
         villas = Villa.objects.filter(owner=request.user)
+
+        serializer = VillaSerializer(villas, many=True)
+        data = json.loads(json.dumps(serializer.data))
     elif reserved is not None and hosted is None:
-        villas_id_list = set(
-            Calendar.objects.filter(
-                customer__user_id=request.user.user_id,
-                end_date__gte=datetime.datetime.now().date()
-            ).values_list('villa', flat=True)
+        reserved_rows = Calendar.objects.filter(
+            customer__user_id=request.user.user_id,
+            end_date__gte=datetime.datetime.now().date()
         )
-        villas = Villa.objects.filter(villa_id__in=villas_id_list, visible=True)
+
+        serializer = MyCalendarSerializer(reserved_rows, many=True)
+        data = json.loads(json.dumps(serializer.data))
+
+        for x in data:
+            for key in x['villa'].keys():
+                x[key] = x['villa'][key]
+            del x['villa']
+
+            x['reserved_dates'] = f"{str(x['start_date'])},{str(x['end_date'])}"
+            del x['start_date']
+            del x['end_date']
     else:
         return Response("hosted/reserved: BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
-
-    serializer = VillaSerializer(villas, many=True)
-    data = json.loads(json.dumps(serializer.data))
-
-    if reserved is not None and hosted is None:
-        for x in data:
-            reserved_date_list = []
-            reserved_dates = set(
-                Calendar.objects.filter(villa__villa_id=x['villa_id'],
-                                        customer__user_id=request.user.user_id,
-                                        end_date__gte=datetime.datetime.now().date()
-                                        )
-            )
-
-            for reserved_date in reserved_dates:
-                reserved_date_list.append(f"ID: {reserved_date.calendar_id} - {str(reserved_date.start_date)},{str(reserved_date.end_date)}")
-
-            x['reserved_dates'] = reserved_date_list
 
     return Response({'data': add_additional_info(data, request.user.user_id)}, status=status.HTTP_200_OK)
 
@@ -229,16 +223,19 @@ class UserVilla(APIView):
 
             del data['likes']
 
-            try:
-                Calendar.objects.get(villa__villa_id=villa_id, customer__user_id=self.request.user.user_id,
-                                     end_date__gte=datetime.datetime.now().date())
+            reserved_rows = Calendar.objects.filter(villa__villa_id=villa_id,
+                                                    customer__user_id=self.request.user.user_id,
+                                                    end_date__gte=datetime.datetime.now().date())
+
+            if len(reserved_rows) != 0:
                 data['reserved'] = True
-            except Calendar.DoesNotExist:
+            else:
                 data['reserved'] = False
 
             data['user_id'] = self.request.user.user_id
 
             return Response(data, status=status.HTTP_200_OK)
+
         else:
             return Response("Villa_id: None, BAD REQUEST", status=status.HTTP_400_BAD_REQUEST)
 
@@ -574,20 +571,20 @@ def add_rate(request):
     user = request.user
 
     if 'villa_id' not in request.data.keys():
-        return Response({'message':'villa_id field required'},
-                         status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'villa_id field required'},
+                        status=status.HTTP_400_BAD_REQUEST)
     else:
         try:
             villa = Villa.objects.get(villa_id=request.data['villa_id'])
         except:
-            return Response({'message':'villa does not exist'},
-                             status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'villa does not exist'},
+                            status=status.HTTP_404_NOT_FOUND)
 
     if 'rate' in request.data.keys():
         reserve = Calendar.objects.filter(customer=user, villa=villa)
         if list(reserve) == []:
-            return Response({'message':'reserve does not exist'},
-                             status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'reserve does not exist'},
+                            status=status.HTTP_404_NOT_FOUND)
         reserve = list(reserve)[-1]
         reserve.rate = int(request.POST['rate'])
         reserve.save()
@@ -601,22 +598,21 @@ def add_rate(request):
         return Response({'message': 'rate field required'},
                         status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['GET', ])
 def cancel_reserve(request):
     if 'reserve_id' not in request.data.keys():
-        return Response({'message':'reserve_id field required'},
-                         status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'reserve_id field required'},
+                        status=status.HTTP_400_BAD_REQUEST)
     else:
         try:
             reserve = Calendar.objects.get(reserve_id=int(request.data['reserve_id']))
             reserve.delete()
-            return Response({'message':'cancel reserve successfully'},
-                             status=status.HTTP_200_OK)
+            return Response({'message': 'cancel reserve successfully'},
+                            status=status.HTTP_200_OK)
         except:
-            return Response({'message':'reserve does not exist'},
-                             status=status.HTTP_404_NOT_FOUND)
-
-
+            return Response({'message': 'reserve does not exist'},
+                            status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['POST', ])
