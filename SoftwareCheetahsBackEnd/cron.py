@@ -34,7 +34,6 @@ def reminder_cancel_reservation():
         if reserved_row.start_date - datetime.datetime.now().date() >= 10:
             try:
                 customer_device = GCMDevice.objects.get(user=reserved_row.customer)
-                host_device = GCMDevice.objects.get(user=reserved_row.villa.owner)
 
                 customer_device.send_message(title=f"You can cancel your reservation "
                                                    f"without loosing money until tonight!",

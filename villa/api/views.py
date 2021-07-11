@@ -105,7 +105,7 @@ def get_user_villas(request):
             )
 
             for reserved_date in reserved_dates:
-                reserved_date_list.append(f"{str(reserved_date.start_date)},{str(reserved_date.end_date)}")
+                reserved_date_list.append(f"ID: {reserved_date.calendar_id} - {str(reserved_date.start_date)},{str(reserved_date.end_date)}")
 
             x['reserved_dates'] = reserved_date_list
 
