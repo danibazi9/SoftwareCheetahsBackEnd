@@ -28,7 +28,6 @@ def registration_view(request):
         if 'vc_code' in request.data:
             if request.data['vc_code'] == '000000':
                 account = serializer.save()
-                account.username = account.email
                 Token.objects.get(user=account)
             else:
                 try:
@@ -39,7 +38,6 @@ def registration_view(request):
 
                 if request.data['vc_code'] == vc_code_object.vc_code:
                     account = serializer.save()
-                    account.username = account.email
                 else:
                     return Response(f"ERROR: Incorrect verification code", status=status.HTTP_406_NOT_ACCEPTABLE)
         else:

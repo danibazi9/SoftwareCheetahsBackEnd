@@ -505,7 +505,7 @@ def register_villa(request):
 
 
 @api_view(['GET', ])
-@permission_classes((IsAuthenticated,))
+@permission_classes([])
 def get_most_reserved_city(request):
     if 'number_of_city' not in request.GET:
         return Response(f"Number_of_city: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
@@ -538,7 +538,7 @@ def get_most_reserved_city(request):
 
 
 @api_view(['GET', ])
-@permission_classes((IsAuthenticated,))
+@permission_classes([])
 def show_most_registered_villas(request):
     if 'number_of_villa' not in request.GET:
         return Response(f"Number_of_villa: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
@@ -556,13 +556,13 @@ def show_most_registered_villas(request):
 
 
 @api_view(['GET', ])
-@permission_classes((IsAuthenticated,))
+@permission_classes([])
 def show_most_rated_villas(request):
     if 'number_of_villa' not in request.GET:
         return Response(f"Number_of_villa: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
 
     number_of_villa = int(request.GET['number_of_villa'])
-    most_rated = Villa.objects.filter().order_by('rate')[::-1][:number_of_villa]
+    most_rated = Villa.objects.filter(Q(no_rate__gt=0)).order_by('rate')[::-1][:number_of_villa]
     serializer = VillaSearchSerializer(many=True, data=most_rated)
     serializer.is_valid()
     return Response({'message': 'find most rated successfully', 'data': serializer.data},

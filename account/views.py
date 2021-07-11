@@ -66,7 +66,6 @@ def account_view(request):
         if form.is_valid():
             form.initial = {
                 "email": request.POST['email'],
-                "username": request.POST['username'],
             }
             form.save()
             context['success_message'] = "Updated"
@@ -75,7 +74,6 @@ def account_view(request):
 
             initial={
                 "email": request.user.email,
-                "username": request.user.username,
             }
         )
 

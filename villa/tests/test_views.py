@@ -1160,7 +1160,8 @@ class MostRatedVillasTest(TestCase):
             capacity=10,
             max_capacity=20,
             postal_code='1234',
-            rate=3
+            rate=3,
+            no_rate=1
         )
 
         v2 = Villa.objects.create(
@@ -1177,7 +1178,8 @@ class MostRatedVillasTest(TestCase):
             capacity=10,
             max_capacity=20,
             postal_code='1235',
-            rate=4
+            rate=4,
+            no_rate=1
         )
 
     def test_invalid_token(self):
