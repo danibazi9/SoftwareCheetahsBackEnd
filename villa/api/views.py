@@ -602,7 +602,6 @@ def add_rate(request):
                         status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', ])
-@permission_classes((IsAuthenticated,))
 def cancel_reserve(request):
     if 'reserve_id' not in request.data.keys():
         return Response({'message':'reserve_id field required'},
