@@ -7,7 +7,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Account
-        fields = ['first_name', 'last_name', 'email', 'phone_number', 'password', 'role']
+        fields = ['first_name', 'last_name', 'email', 'phone_number', 'password', 'role', 'currency']
 
     def save(self):
         role = ''
@@ -32,7 +32,7 @@ class AccountPropertiesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         fields = ['user_id', 'first_name', 'last_name', 'email', 'phone_number',
-                  'gender', 'national_code', 'image', 'role', 'bio','birthday']
+                  'gender', 'national_code', 'image', 'role', 'bio','birthday', 'currency']
 
 
 class DocumentSerializer(serializers.ModelSerializer):
