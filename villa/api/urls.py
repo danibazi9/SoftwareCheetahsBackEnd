@@ -21,4 +21,5 @@ urlpatterns = [
     path('rate/add/', views.add_rate, name='add_rate'),
     path('like/', views.like_villa, name='like_villa'),
     path('check-postal-code/', views.check_postal_code, name='check_postal_code'),
+    path('reserve/cancel/', views.cancel_reserve, name='cancel_reserve'),
 ]

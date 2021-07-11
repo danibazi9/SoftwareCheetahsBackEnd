@@ -346,7 +346,6 @@ class UserVilla(APIView):
                         status=status.HTTP_201_CREATED)
 
 
-@permission_classes((IsAuthenticated,))
 @api_view(['GET', ])
 @permission_classes((IsAuthenticated,))
 def get_fixed_rules(request):
@@ -571,26 +570,54 @@ def show_most_rated_villas(request):
 
 
 @api_view(['POST', ])
-@permission_classes((IsAuthenticated,))
 def add_rate(request):
-    if 'reserve_id' in request.data.keys() and 'rate' in request.data.keys():
-        try:
-            reserve = Calendar.objects.get(calendar_id=int(request.POST['reserve_id']))
-            reserve.rate = int(request.POST['rate'])
-            reserve.save()
-            villa = reserve.villa
-            villa.rate = ((villa.rate * villa.no_rate) + reserve.rate) / (villa.no_rate + 1)
-            villa.no_rate += 1
-            villa.save()
-            serializer = VillaSearchSerializer(villa)
-            return Response({'message': 'add rate successfully', 'data': serializer.data},
-                            status=status.HTTP_200_OK)
-        except Calendar.DoesNotExist:
-            return Response({'message': f"reserve_id {request.POST['reserve_id']} does not exist"},
-                            status=status.HTTP_404_NOT_FOUND)
+    user = request.user
+
+    if 'villa_id' not in request.data.keys():
+        return Response({'message':'villa_id field required'},
+                         status=status.HTTP_400_BAD_REQUEST)
     else:
-        return Response({'message': 'invalid body request'},
+        try:
+            villa = Villa.objects.get(villa_id=request.data['villa_id'])
+        except:
+            return Response({'message':'villa does not exist'},
+                             status=status.HTTP_404_NOT_FOUND)
+
+    if 'rate' in request.data.keys():
+        reserve = Calendar.objects.filter(customer=user, villa=villa)
+        if list(reserve) == []:
+            return Response({'message':'reserve does not exist'},
+                             status=status.HTTP_404_NOT_FOUND)
+        reserve = list(reserve)[-1]
+        reserve.rate = int(request.POST['rate'])
+        reserve.save()
+        villa.rate = ((villa.rate * villa.no_rate) + reserve.rate) / (villa.no_rate + 1)
+        villa.no_rate += 1
+        villa.save()
+        serializer = VillaSearchSerializer(villa)
+        return Response({'message': 'add rate successfully', 'data': serializer.data},
+                        status=status.HTTP_200_OK)
+    else:
+        return Response({'message': 'rate field required'},
                         status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', ])
+@permission_classes((IsAuthenticated,))
+def cancel_reserve(request):
+    if 'reserve_id' not in request.data.keys():
+        return Response({'message':'reserve_id field required'},
+                         status=status.HTTP_400_BAD_REQUEST)
+    else:
+        try:
+            reserve = Calendar.objects.get(reserve_id=int(request.data['reserve_id']))
+            reserve.delete()
+            return Response({'message':'cancel reserve successfully'},
+                             status=status.HTTP_200_OK)
+        except:
+            return Response({'message':'reserve does not exist'},
+                             status=status.HTTP_404_NOT_FOUND)
+
+
 
 
 @api_view(['POST', ])
