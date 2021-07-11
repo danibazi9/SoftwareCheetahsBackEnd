@@ -239,109 +239,108 @@ class UserVilla(APIView):
         else:
             return Response("Villa_id: None, BAD REQUEST", status=status.HTTP_400_BAD_REQUEST)
 
+    def post(self, args):
+        data = json.loads(json.dumps(self.request.data))
+        data['owner'] = self.request.user.user_id
 
-def post(self, args):
-    data = json.loads(json.dumps(self.request.data))
-    data['owner'] = self.request.user.user_id
+        serializer = VillaSerializer(data=data)
+        if serializer.is_valid():
+            images_to_add = []
+            documents_to_add = []
+            rules_to_add = []
+            facilities_list = []
 
-    serializer = VillaSerializer(data=data)
-    if serializer.is_valid():
-        images_to_add = []
-        documents_to_add = []
-        rules_to_add = []
-        facilities_list = []
+            if 'image_id_list' in data:
+                list_of_image_ids = data['image_id_list']
+                if len(list_of_image_ids) > 0:
+                    for image_id in list_of_image_ids:
+                        try:
+                            image_to_add = Image.objects.get(image_id=image_id)
+                            images_to_add.append(image_to_add)
+                        except Image.DoesNotExist:
+                            return Response(f"Image with image_id {image_id} NOT FOUND!",
+                                            status=status.HTTP_404_NOT_FOUND)
 
-        if 'image_id_list' in data:
-            list_of_image_ids = data['image_id_list']
-            if len(list_of_image_ids) > 0:
-                for image_id in list_of_image_ids:
-                    try:
-                        image_to_add = Image.objects.get(image_id=image_id)
-                        images_to_add.append(image_to_add)
-                    except Image.DoesNotExist:
-                        return Response(f"Image with image_id {image_id} NOT FOUND!",
-                                        status=status.HTTP_404_NOT_FOUND)
+            if 'doc_id_list' in data:
+                list_of_doc_ids = data['doc_id_list']
+                if len(list_of_doc_ids) > 0:
+                    for doc_id in list_of_doc_ids:
+                        try:
+                            doc_to_add = Document.objects.get(document_id=doc_id)
+                            documents_to_add.append(doc_to_add)
+                        except Document.DoesNotExist:
+                            return Response(f"Document with document_id {doc_id} NOT FOUND!",
+                                            status=status.HTTP_404_NOT_FOUND)
 
-        if 'doc_id_list' in data:
-            list_of_doc_ids = data['doc_id_list']
-            if len(list_of_doc_ids) > 0:
-                for doc_id in list_of_doc_ids:
-                    try:
-                        doc_to_add = Document.objects.get(document_id=doc_id)
-                        documents_to_add.append(doc_to_add)
-                    except Document.DoesNotExist:
-                        return Response(f"Document with document_id {doc_id} NOT FOUND!",
-                                        status=status.HTTP_404_NOT_FOUND)
+            if 'facilities_list' in data:
+                for facility in data['facilities_list']:
+                    facility_obj, created = Facility.objects.get_or_create(name=facility)
+                    facilities_list.append(facility_obj)
+            else:
+                return Response(f"Facilities_list: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
 
-        if 'facilities_list' in data:
-            for facility in data['facilities_list']:
-                facility_obj, created = Facility.objects.get_or_create(name=facility)
-                facilities_list.append(facility_obj)
+            if 'rule_id_list' in data:
+                list_of_rule_ids = data['rule_id_list']
+                if len(list_of_rule_ids) > 0:
+                    for rule_id in list_of_rule_ids:
+                        try:
+                            rule_to_add = Rule.objects.get(rule_id=rule_id)
+                            rules_to_add.append(rule_to_add)
+                        except Rule.DoesNotExist:
+                            return Response(f"Rule with rule_id {rule_id} NOT FOUND!",
+                                            status=status.HTTP_404_NOT_FOUND)
+
+            villa = serializer.save()
         else:
-            return Response(f"Facilities_list: None, BAD REQUEST!", status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        if 'rule_id_list' in data:
-            list_of_rule_ids = data['rule_id_list']
-            if len(list_of_rule_ids) > 0:
-                for rule_id in list_of_rule_ids:
-                    try:
-                        rule_to_add = Rule.objects.get(rule_id=rule_id)
-                        rules_to_add.append(rule_to_add)
-                    except Rule.DoesNotExist:
-                        return Response(f"Rule with rule_id {rule_id} NOT FOUND!",
-                                        status=status.HTTP_404_NOT_FOUND)
+        if 'description' in data:
+            villa.description = data['description']
 
-        villa = serializer.save()
-    else:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if 'number_of_bathrooms' in data:
+            villa.number_of_bathrooms = int(data['number_of_bathrooms'])
 
-    if 'description' in data:
-        villa.description = data['description']
+        if 'number_of_bedrooms' in data:
+            villa.number_of_bedrooms = int(data['number_of_bedrooms'])
 
-    if 'number_of_bathrooms' in data:
-        villa.number_of_bathrooms = int(data['number_of_bathrooms'])
+        if 'number_of_single_beds' in data:
+            villa.number_of_single_beds = int(data['number_of_single_beds'])
 
-    if 'number_of_bedrooms' in data:
-        villa.number_of_bedrooms = int(data['number_of_bedrooms'])
+        if 'number_of_double_beds' in data:
+            villa.number_of_double_beds = int(data['number_of_double_beds'])
 
-    if 'number_of_single_beds' in data:
-        villa.number_of_single_beds = int(data['number_of_single_beds'])
+        if 'number_of_showers' in data:
+            villa.number_of_showers = int(data['number_of_showers'])
 
-    if 'number_of_double_beds' in data:
-        villa.number_of_double_beds = int(data['number_of_double_beds'])
+        default_image = images_to_add[0]
+        default_image.default = True
+        default_image.save()
 
-    if 'number_of_showers' in data:
-        villa.number_of_showers = int(data['number_of_showers'])
+        for image in images_to_add:
+            villa.images.add(image)
 
-    default_image = images_to_add[0]
-    default_image.default = True
-    default_image.save()
+        for document in documents_to_add:
+            villa.documents.add(document)
 
-    for image in images_to_add:
-        villa.images.add(image)
+        for rule in rules_to_add:
+            villa.rules.add(rule)
 
-    for document in documents_to_add:
-        villa.documents.add(document)
+        for facility in facilities_list:
+            villa.facilities.add(facility)
 
-    for rule in rules_to_add:
-        villa.rules.add(rule)
+        villa.save()
 
-    for facility in facilities_list:
-        villa.facilities.add(facility)
+        try:
+            fcm_devices = GCMDevice.objects.all().exclude(user=self.request.user)
+            for device in fcm_devices:
+                device.send_message(title=f"Hey, We've got a new villa for you!",
+                                    message=f"{villa.country}, {villa.state}, {villa.city}"
+                                    )
+        except Exception as e:
+            print(f"Error: {e}")
 
-    villa.save()
-
-    try:
-        fcm_devices = GCMDevice.objects.all().exclude(user=self.request.user)
-        for device in fcm_devices:
-            device.send_message(title=f"Hey, We've got a new villa for you!",
-                                message=f"{villa.country}, {villa.state}, {villa.city}"
-                                )
-    except Exception as e:
-        print(f"Error: {e}")
-
-    return Response(f"Villa with villa_id {villa.villa_id} created successfully!",
-                    status=status.HTTP_201_CREATED)
+        return Response(f"Villa with villa_id {villa.villa_id} created successfully!",
+                        status=status.HTTP_201_CREATED)
 
 
 @api_view(['GET', ])
