@@ -1160,7 +1160,8 @@ class MostRatedVillasTest(TestCase):
             capacity=10,
             max_capacity=20,
             postal_code='1234',
-            rate=3
+            rate=3,
+            no_rate=1
         )
 
         v2 = Villa.objects.create(
@@ -1177,7 +1178,8 @@ class MostRatedVillasTest(TestCase):
             capacity=10,
             max_capacity=20,
             postal_code='1235',
-            rate=4
+            rate=4,
+            no_rate=1
         )
 
     def test_invalid_token(self):
@@ -1283,7 +1285,7 @@ class AddVillaRateTest(TestCase):
     def test_does_not_exist_reserve(self):
         response = client.post(
             reverse('villa:add_rate'),
-            data = {'reserve_id':20, 'rate':5},
+            data = {'villa_id':20, 'rate':5},
             HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -1291,7 +1293,7 @@ class AddVillaRateTest(TestCase):
     def test_add_rate_currectly(self):
         response = client.post(
             reverse('villa:add_rate'),
-            data = {'reserve_id':self.reserve.calendar_id, 'rate':5},
+            data = {'villa_id':self.reserve.villa.villa_id, 'rate':5},
             HTTP_AUTHORIZATION='Token {}'.format(self.valid_token),
         )
         self.assertEqual(response.data['data']['rate'], 4.2)
