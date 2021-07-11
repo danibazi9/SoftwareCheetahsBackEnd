@@ -45,11 +45,16 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'django_cleanup',
+    'django_crontab',
     'rest_framework.authtoken',
     'push_notifications',
     'chat',
     'account',
     'villa',
+]
+
+CRONJOBS = [
+    ('*/5 * * * *', 'SoftwareCheetahsBackEnd.cron.reminder_register')
 ]
 
 PUSH_NOTIFICATIONS_SETTINGS = {
