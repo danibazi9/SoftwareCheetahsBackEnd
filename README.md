@@ -1,8 +1,10 @@
 # SoftwareCheetahsBackEnd
-This git repository created for the back-end of **"MyUniversity"** project.
+This git repository created for the back-end of **"Sweet Home"** project.
 
-"Software Engineering" course project, IUST, Dr.Ashtiani, semester 992
+"Software Engineering" course project, IUST, Dr.Ashtiani, Spring 2021
 
+**"Sweet Home"** is a comprehensive reservation application for hotels, guesthouses accommodations that covers all needs of travelers across the country.
+The effort of the developers in this program is to meet the most important predictable needs of travelers to a good extent.
 
 Project contributors: 
 
